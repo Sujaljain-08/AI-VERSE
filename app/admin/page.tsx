@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Leaderboard from '@/components/admin/Leaderboard'
-import VideoPlayer from '@/components/admin/VideoPlayer'
+import LiveVideoViewer from '@/components/admin/LiveVideoViewer'
 
 export default function AdminPage() {
   const [user, setUser] = useState<any>(null)
@@ -217,12 +217,11 @@ export default function AdminPage() {
         </div>
       </main>
 
-      {/* Video Player Modal */}
+      {/* Live Video Viewer Modal */}
       {selectedStudent && (
-        <VideoPlayer
-          studentId={selectedStudent.studentId}
-          sessionId={selectedStudent.sessionId}
-          studentName={selectedStudent.studentName}
+        <LiveVideoViewer
+          student={selectedStudent}
+          roomId={`exam-${selectedStudent.sessionId}`}
           onClose={() => setSelectedStudent(null)}
         />
       )}

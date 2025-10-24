@@ -27,6 +27,19 @@ export default function DashboardPage() {
       return
     }
 
+    // Check user role from profiles table
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    // Redirect admins to admin dashboard
+    if (profile?.role === 'admin') {
+      router.push('/admin')
+      return
+    }
+
     setUser(user)
     setLoading(false)
   }

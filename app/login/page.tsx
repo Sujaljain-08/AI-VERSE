@@ -29,9 +29,30 @@ export default function LoginPage() {
       return
     }
 
+    // Get user role from profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
+    console.log('User ID:', data.user.id)
+    console.log('Profile data:', profile)
+    console.log('Profile error:', profileError)
+
     // Redirect based on role
-    const role = data.user?.user_metadata?.role || 'student'
-    router.push(role === 'admin' ? '/admin' : '/dashboard')
+    const role = profile?.role || 'student'
+    console.log('User role:', role)
+    console.log('Redirecting to:', role === 'admin' ? '/admin' : '/dashboard')
+    
+    setLoading(false)
+    
+    // Use router.replace instead of push to avoid history issues
+    if (role === 'admin') {
+      router.replace('/admin')
+    } else {
+      router.replace('/dashboard')
+    }
   }
 
   const handleGoogleLogin = async () => {
