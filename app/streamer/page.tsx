@@ -17,6 +17,7 @@ export default function StreamerPage() {
   const channelRef = useRef<RealtimeChannel | null>(null)
   const peerRef = useRef<RTCPeerConnection | null>(null)
   const mediaStreamRef = useRef<MediaStream | null>(null)
+  const hasSentOfferRef = useRef(false)
 
   useEffect(() => {
     setIsMounted(true)
@@ -31,6 +32,7 @@ export default function StreamerPage() {
     channelRef.current = null
 
     if (peerRef.current) {
+      peerRef.current.ontrack = null
       peerRef.current.onicecandidate = null
       peerRef.current.onconnectionstatechange = null
       peerRef.current.close()
@@ -39,6 +41,8 @@ export default function StreamerPage() {
 
     mediaStreamRef.current?.getTracks().forEach((track) => track.stop())
     mediaStreamRef.current = null
+
+    hasSentOfferRef.current = false
 
     if (videoRef.current) {
       videoRef.current.srcObject = null
@@ -97,23 +101,45 @@ export default function StreamerPage() {
       }
 
       channel.on('broadcast', { event: 'viewer-ready' }, async () => {
-        if (!peerRef.current || !channelRef.current) return
-        const offer = await peerRef.current.createOffer()
-        await peerRef.current.setLocalDescription(offer)
-        await channelRef.current.send({
+        const peerConnection = peerRef.current
+        const realtimeChannel = channelRef.current
+        if (!peerConnection || !realtimeChannel) return
+
+        if (peerConnection.signalingState === 'have-local-offer' && hasSentOfferRef.current) {
+          return
+        }
+
+        if (hasSentOfferRef.current && peerConnection.signalingState === 'stable') {
+          hasSentOfferRef.current = false
+        }
+
+        if (hasSentOfferRef.current) {
+          return
+        }
+
+        const offer = await peerConnection.createOffer()
+        await peerConnection.setLocalDescription(offer)
+        await realtimeChannel.send({
           type: 'broadcast',
           event: 'offer',
           payload: { sdp: offer.sdp },
         })
         setStatus('waiting_viewer')
+        setMessage('Offer sent. Waiting for viewer to join.')
+        hasSentOfferRef.current = true
       })
 
       channel.on('broadcast', { event: 'answer' }, async ({ payload }) => {
         if (!peerRef.current || !payload?.sdp) return
         if (peerRef.current.currentRemoteDescription) return
+        if (peerRef.current.signalingState !== 'have-local-offer') {
+          console.warn(`Ignoring answer because signaling state is ${peerRef.current.signalingState}`)
+          return
+        }
         await peerRef.current.setRemoteDescription(new RTCSessionDescription({ type: 'answer', sdp: payload.sdp }))
         setStatus('live')
         setMessage('Viewer connected. Streaming live.')
+        hasSentOfferRef.current = false
       })
 
       channel.on('broadcast', { event: 'viewer-candidate' }, async ({ payload }) => {
@@ -127,15 +153,8 @@ export default function StreamerPage() {
 
       await channel.subscribe(async (subscriptionStatus) => {
         if (subscriptionStatus === 'SUBSCRIBED') {
-          const offer = await peer.createOffer()
-          await peer.setLocalDescription(offer)
-          await channel.send({
-            type: 'broadcast',
-            event: 'offer',
-            payload: { sdp: offer.sdp },
-          })
           setStatus('waiting_viewer')
-          setMessage('Offer sent. Waiting for viewer to join.')
+          setMessage('Waiting for viewer to join.')
         }
       })
     } catch (error) {

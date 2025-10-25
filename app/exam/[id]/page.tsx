@@ -30,6 +30,7 @@ export default function ExamPage() {
   const [currentScore, setCurrentScore] = useState(100);
   const [status, setStatus] = useState('Ready to start');
   const [alerts, setAlerts] = useState<string[]>([]);
+  const [manualAlerts, setManualAlerts] = useState<string[]>([]);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -45,6 +46,15 @@ export default function ExamPage() {
   // Score buffer for batch saving
   const scoreBufferRef = useRef<AnalysisResult[]>([]);
   const supabase = createClient();
+  const tabInactiveRef = useRef(false);
+  const manualAlertsRef = useRef<string[]>([]);
+  const remoteAlertsRef = useRef<string[]>([]);
+  const TAB_INACTIVE_ALERT = 'tab_inactive';
+
+  useEffect(() => {
+    manualAlertsRef.current = manualAlerts;
+    setAlerts(Array.from(new Set([...remoteAlertsRef.current, ...manualAlerts])));
+  }, [manualAlerts]);
 
   // Fetch exam details and start session
   useEffect(() => {
@@ -162,6 +172,10 @@ export default function ExamPage() {
     if (!sessionId || !userId) return;
 
     try {
+      tabInactiveRef.current = false;
+      setManualAlerts([]);
+      remoteAlertsRef.current = [];
+      setAlerts([]);
       // Get webcam access
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 480 },
@@ -194,7 +208,9 @@ export default function ExamPage() {
         if (result.success) {
           setCurrentScore(Math.round(result.focus_score));
           setStatus(result.status);
-          setAlerts(result.alerts || []);
+          const remoteAlerts = result.alerts || [];
+          remoteAlertsRef.current = remoteAlerts;
+          setAlerts(Array.from(new Set([...remoteAlerts, ...manualAlertsRef.current])));
 
           // Add to buffer
           scoreBufferRef.current.push(result);
@@ -287,6 +303,65 @@ export default function ExamPage() {
     }
   };
 
+  useEffect(() => {
+    if (!isStarted) {
+      return;
+    }
+
+    const flagTabInactive = () => {
+      if (!isStarted || tabInactiveRef.current) {
+        return;
+      }
+      tabInactiveRef.current = true;
+      setStatus('Exam tab inactive');
+      setManualAlerts((prev) => (prev.includes(TAB_INACTIVE_ALERT) ? prev : [...prev, TAB_INACTIVE_ALERT]));
+      scoreBufferRef.current.push({
+        success: true,
+        focus_score: 0,
+        raw_frame_score: 0,
+        status: 'Exam tab inactive',
+        state: 'tab_inactive',
+        away_timer: 0,
+        alerts: [TAB_INACTIVE_ALERT],
+        timestamp: Date.now(),
+      });
+    };
+
+    const clearTabInactiveFlag = () => {
+      if (!tabInactiveRef.current) {
+        return;
+      }
+      tabInactiveRef.current = false;
+      setManualAlerts((prev) => prev.filter((alert) => alert !== TAB_INACTIVE_ALERT));
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        flagTabInactive();
+      } else {
+        clearTabInactiveFlag();
+      }
+    };
+
+    const handleWindowBlur = () => {
+      flagTabInactive();
+    };
+
+    const handleWindowFocus = () => {
+      clearTabInactiveFlag();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [isStarted]);
+
   // Batch save scores every 3 seconds
   useEffect(() => {
     if (!isStarted) return;
@@ -295,7 +370,12 @@ export default function ExamPage() {
       if (scoreBufferRef.current.length === 0) return;
 
       // Take every 10th score to reduce DB writes
-      const scores = scoreBufferRef.current.filter((_, i) => i % 10 === 0);
+      const scores = scoreBufferRef.current.filter((score, i) => {
+        if (score.alerts?.includes(TAB_INACTIVE_ALERT)) {
+          return true;
+        }
+        return i % 10 === 0;
+      });
       
       if (scores.length > 0) {
         await fetch('/api/exam/analyze-batch', {
@@ -330,6 +410,11 @@ export default function ExamPage() {
     if (peerRef.current) {
       peerRef.current.close();
     }
+    tabInactiveRef.current = false;
+    remoteAlertsRef.current = [];
+    setManualAlerts([]);
+    setAlerts([]);
+    setIsStarted(false);
 
     // Submit exam
     const response = await fetch('/api/exam/submit', {
@@ -358,6 +443,7 @@ export default function ExamPage() {
       if (peerRef.current) {
         peerRef.current.close();
       }
+      tabInactiveRef.current = false;
     };
   }, []);
 

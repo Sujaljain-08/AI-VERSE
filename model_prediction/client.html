@@ -281,6 +281,15 @@
             }
             
             const video = document.getElementById('webcam');
+            const hasFrame = video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA &&
+                             video.videoWidth > 0 &&
+                             video.videoHeight > 0;
+            
+            if (!hasFrame) {
+                setTimeout(captureAndSendFrame, 100);
+                return;
+            }
+            
             const canvas = document.createElement('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;

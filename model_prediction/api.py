@@ -3,17 +3,19 @@ FastAPI Endpoint for AI Focus Monitoring System
 Real-time video analysis for focus detection, gaze tracking, and cheating detection
 """
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 import cv2
 import numpy as np
 import base64
+import binascii
 import json
 import time
 import logging
 from typing import Dict, List
 import asyncio
+from starlette.websockets import WebSocketState
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -272,6 +274,37 @@ class FocusMonitor:
 monitor = FocusMonitor()
 
 
+def _decode_base64_frame(frame_payload: str) -> np.ndarray:
+    """
+    Decode a base64 encoded frame string into an OpenCV BGR image.
+    Raises ValueError with a clear message when decoding fails.
+    """
+    if frame_payload is None:
+        raise ValueError("Missing frame data")
+    
+    base64_part = frame_payload.split(",")[-1].strip()
+    if not base64_part:
+        raise ValueError("Empty frame data")
+    
+    try:
+        frame_bytes = base64.b64decode(base64_part, validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise ValueError("Invalid base64 frame data") from exc
+    
+    if not frame_bytes:
+        raise ValueError("Decoded frame is empty")
+    
+    nparr = np.frombuffer(frame_bytes, np.uint8)
+    if nparr.size == 0:
+        raise ValueError("Decoded frame buffer is empty")
+    
+    frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if frame is None:
+        raise ValueError("Failed to decode frame as image")
+    
+    return frame
+
+
 @app.get("/")
 async def root():
     """API root endpoint"""
@@ -307,6 +340,19 @@ async def websocket_analyze(websocket: WebSocket):
     await websocket.accept()
     logger.info("WebSocket connection established")
     
+    async def send_json_safe(payload: Dict) -> bool:
+        if websocket.client_state != WebSocketState.CONNECTED:
+            return False
+        try:
+            await websocket.send_json(payload)
+            return True
+        except RuntimeError:
+            logger.info("WebSocket closed before message could be sent")
+            return False
+        except WebSocketDisconnect:
+            logger.info("WebSocket disconnected during send")
+            return False
+    
     try:
         while True:
             # Receive frame from client
@@ -315,35 +361,45 @@ async def websocket_analyze(websocket: WebSocket):
             try:
                 message = json.loads(data)
                 
-                if "frame" not in message:
-                    await websocket.send_json({
+                frame_field = message.get("frame")
+                if frame_field is None:
+                    if not await send_json_safe({
                         "success": False,
                         "error": "No frame data provided"
-                    })
+                    }):
+                        break
                     continue
                 
-                # Decode base64 frame
-                frame_data = base64.b64decode(message["frame"].split(",")[-1])
-                nparr = np.frombuffer(frame_data, np.uint8)
-                frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                try:
+                    frame = _decode_base64_frame(frame_field)
+                except ValueError as decode_error:
+                    if not await send_json_safe({
+                        "success": False,
+                        "error": str(decode_error)
+                    }):
+                        break
+                    continue
                 
                 # Analyze frame
                 result = monitor.analyze_frame(frame)
                 
                 # Send result back
-                await websocket.send_json(result)
+                if not await send_json_safe(result):
+                    break
                 
             except json.JSONDecodeError:
-                await websocket.send_json({
+                if not await send_json_safe({
                     "success": False,
                     "error": "Invalid JSON format"
-                })
+                }):
+                    break
             except Exception as e:
                 logger.error(f"Error processing frame: {str(e)}")
-                await websocket.send_json({
+                if not await send_json_safe({
                     "success": False,
                     "error": f"Processing error: {str(e)}"
-                })
+                }):
+                    break
     
     except WebSocketDisconnect:
         logger.info("WebSocket connection closed")
@@ -450,16 +506,20 @@ async def analyze_frame(request: dict):
     Response: {"success": true, "focus_score": 85.5, ...}
     """
     try:
-        if "frame" not in request:
+        frame_field = request.get("frame")
+        if frame_field is None:
             return JSONResponse(
                 status_code=400,
                 content={"success": False, "error": "No frame data provided"}
             )
         
-        # Decode base64 frame
-        frame_data = base64.b64decode(request["frame"].split(",")[-1])
-        nparr = np.frombuffer(frame_data, np.uint8)
-        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        try:
+            frame = _decode_base64_frame(frame_field)
+        except ValueError as decode_error:
+            return JSONResponse(
+                status_code=400,
+                content={"success": False, "error": str(decode_error)}
+            )
         
         # Analyze frame
         result = monitor.analyze_frame(frame)

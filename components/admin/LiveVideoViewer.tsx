@@ -20,6 +20,7 @@ export default function LiveVideoViewer({ student, roomId, onClose }: LiveVideoV
   const videoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<RTCPeerConnection | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const lastOfferSdpRef = useRef<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -34,13 +35,17 @@ export default function LiveVideoViewer({ student, roomId, onClose }: LiveVideoV
 
   const cleanup = () => {
     if (channelRef.current) {
-      channelRef.current.unsubscribe();
+      channelRef.current.unsubscribe().catch(() => undefined);
       channelRef.current = null;
     }
     if (peerRef.current) {
+      peerRef.current.ontrack = null;
+      peerRef.current.onicecandidate = null;
+      peerRef.current.onconnectionstatechange = null;
       peerRef.current.close();
       peerRef.current = null;
     }
+    lastOfferSdpRef.current = null;
   };
 
   const startViewing = async () => {
@@ -54,6 +59,7 @@ export default function LiveVideoViewer({ student, roomId, onClose }: LiveVideoV
         const [stream] = event.streams;
         if (videoRef.current && stream) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => undefined);
           setStatus('connected');
         }
       };
@@ -81,18 +87,33 @@ export default function LiveVideoViewer({ student, roomId, onClose }: LiveVideoV
       channelRef.current = channel;
 
       channel.on('broadcast', { event: 'offer' }, async ({ payload }) => {
-        if (!peerRef.current || !payload?.sdp) return;
+        const peerConnection = peerRef.current;
+        if (!peerConnection || !payload?.sdp) return;
 
-        await peerRef.current.setRemoteDescription(
-          new RTCSessionDescription({ type: 'offer', sdp: payload.sdp })
-        );
-        const answer = await peerRef.current.createAnswer();
-        await peerRef.current.setLocalDescription(answer);
-        await channel.send({
-          type: 'broadcast',
-          event: 'answer',
-          payload: { sdp: answer.sdp },
-        });
+        if (payload.sdp === lastOfferSdpRef.current) {
+          return;
+        }
+
+        try {
+          const offer = new RTCSessionDescription({ type: 'offer', sdp: payload.sdp });
+          await peerConnection.setRemoteDescription(offer);
+          lastOfferSdpRef.current = payload.sdp;
+
+          if (peerConnection.signalingState !== 'have-remote-offer') {
+            console.warn(`Skipping answer because signaling state is ${peerConnection.signalingState}`);
+            return;
+          }
+
+          const answer = await peerConnection.createAnswer();
+          await peerConnection.setLocalDescription(answer);
+          await channel.send({
+            type: 'broadcast',
+            event: 'answer',
+            payload: { sdp: answer.sdp },
+          });
+        } catch (error) {
+          console.error('Failed to handle offer', error);
+        }
       });
 
       channel.on('broadcast', { event: 'streamer-candidate' }, async ({ payload }) => {
