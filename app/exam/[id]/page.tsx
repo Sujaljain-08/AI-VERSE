@@ -38,8 +38,7 @@ export default function ExamPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   
-  // WebSocket for ML analysis
-  const wsRef = useRef<WebSocket | null>(null);
+  // Stream reference for camera
   const streamRef = useRef<MediaStream | null>(null);
   
   // WebRTC for admin live viewing
@@ -491,7 +490,6 @@ export default function ExamPage() {
     if (!sessionId) return;
 
     // Stop everything
-    if (wsRef.current) wsRef.current.close();
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
     }
@@ -524,7 +522,6 @@ export default function ExamPage() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (wsRef.current) wsRef.current.close();
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
