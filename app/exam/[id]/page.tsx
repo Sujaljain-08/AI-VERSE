@@ -670,93 +670,98 @@ export default function ExamPage() {
               {!isStarted ? (
                 // Show instructions before exam starts
                 <>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] rounded-lg flex items-center justify-center">
-                      <span className="text-white text-xl">📋</span>
+                  <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] rounded-xl flex items-center justify-center shadow-lg shadow-pink-500/30">
+                        <span className="text-white text-2xl">📋</span>
+                      </div>
+                      <div>
+                        <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Exam Instructions</h2>
+                        <p className={`text-sm mt-1 ${isDark ? 'text-white/50' : 'text-gray-600'}`}>Please read carefully before starting</p>
+                      </div>
                     </div>
-                    <h2 className="text-2xl font-bold text-white">Exam Instructions</h2>
                   </div>
+
                   <div className="space-y-4">
-                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
-                      <h3 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
-                        <span>⚠️</span> Important Guidelines
+                    {/* Important Guidelines */}
+                    <div className={`rounded-lg border-l-4 border-red-500 p-6 backdrop-blur-sm ${isDark ? 'bg-red-500/10' : 'bg-red-50'}`}>
+                      <h3 className={`font-bold mb-4 flex items-center gap-2 text-lg ${isDark ? 'text-red-400' : 'text-red-600'}`}>
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
+                        Important Guidelines
                       </h3>
-                      <ul className="space-y-2.5 text-sm text-white/80">
-                        <li className="flex items-start gap-2">
-                          <span className="text-red-400 mt-0.5">•</span>
-                          <span><strong className="text-white">Camera Monitoring:</strong> Your webcam will be monitored throughout the exam</span>
+                      <ul className={`space-y-3 text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                          <span><strong>Camera Monitoring:</strong> Your webcam will be monitored throughout the exam</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-red-400 mt-0.5">•</span>
-                          <span><strong className="text-white">Face Detection:</strong> Keep your face visible and centered at all times</span>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                          <span><strong>Face Detection:</strong> Keep your face visible and centered at all times</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-red-400 mt-0.5">•</span>
-                          <span><strong className="text-white">Stay Focused:</strong> Looking away repeatedly will be flagged as suspicious</span>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                          <span><strong>Stay Focused:</strong> Looking away repeatedly will be flagged as suspicious</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-red-400 mt-0.5">•</span>
-                          <span><strong className="text-white">No Tab Switching:</strong> Leaving this tab will trigger alerts</span>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                          <span><strong>No Tab Switching:</strong> Leaving this tab will trigger alerts</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-red-400 mt-0.5">•</span>
-                          <span><strong className="text-white">No Devices:</strong> Keep phones and tablets out of camera view</span>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                          <span><strong>No Devices:</strong> Keep phones and tablets out of camera view</span>
                         </li>
                       </ul>
                     </div>
 
-                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-                      <h3 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
-                        <span>✅</span> Before You Start
+                    {/* Setup Checklist */}
+                    <div className={`rounded-lg border-l-4 border-green-500 p-6 backdrop-blur-sm ${isDark ? 'bg-green-500/10' : 'bg-green-50'}`}>
+                      <h3 className={`font-bold mb-4 flex items-center gap-2 text-lg ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.707 2.293a1 1 0 00-1.414 1.414l9 9a1 1 0 001.414-1.414l-9-9zM4 10a2 2 0 11-4 0 2 2 0 014 0zm12 0a2 2 0 11-4 0 2 2 0 014 0z" clipRule="evenodd"/></svg>
+                        Setup Checklist
                       </h3>
-                      <ul className="space-y-2.5 text-sm text-white/80">
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-400 mt-0.5">•</span>
-                          <span>Ensure you are in a well-lit environment</span>
+                      <ul className={`space-y-2.5 text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                          <span>Environment is well-lit</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-400 mt-0.5">•</span>
-                          <span>Position yourself so your face is centered in the camera</span>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                          <span>Face is centered in camera</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-400 mt-0.5">•</span>
-                          <span>Close all other tabs and applications</span>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                          <span>All other tabs and apps closed</span>
                         </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-400 mt-0.5">•</span>
-                          <span>Make sure you have a stable internet connection</span>
-                        </li>
-                        <li className="flex items-start gap-2">
-                          <span className="text-green-400 mt-0.5">•</span>
-                          <span>Read all questions carefully before answering</span>
+                        <li className="flex gap-3">
+                          <svg className="w-5 h-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                          <span>Stable internet connection verified</span>
                         </li>
                       </ul>
                     </div>
 
-                    <div className="bg-white/5 border border-white/10 rounded-lg p-4">
-                      <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
-                        <span>📝</span> Exam Details
-                      </h3>
-                      <div className="text-sm text-white/70 space-y-2">
-                        <p className="flex items-center gap-2">
-                          <span className="text-white/40">Title:</span>
-                          <span className="text-white font-medium">{examTitle}</span>
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-white/40">Total Questions:</span>
-                          <span className="text-white font-medium">{questions.length > 0 ? questions.length : 'Loading...'}</span>
-                        </p>
-                        <p className="flex items-center gap-2">
-                          <span className="text-white/40">Session ID:</span>
-                          <span className="text-white/60 font-mono text-xs">{sessionId || 'Loading...'}</span>
-                        </p>
+                    {/* Exam Info Card */}
+                    <div className={`rounded-lg border p-6 backdrop-blur-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
+                      <h3 className={`font-bold mb-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>📝 Exam Details</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className={`text-xs uppercase font-semibold tracking-wide ${isDark ? 'text-white/50' : 'text-gray-600'}`}>Title</p>
+                          <p className={`text-lg font-semibold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{examTitle}</p>
+                        </div>
+                        <div>
+                          <p className={`text-xs uppercase font-semibold tracking-wide ${isDark ? 'text-white/50' : 'text-gray-600'}`}>Questions</p>
+                          <p className={`text-lg font-semibold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{questions.length > 0 ? questions.length : 'Loading...'}</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t" style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
+                        <p className={`text-xs uppercase font-semibold tracking-wide ${isDark ? 'text-white/50' : 'text-gray-600'}`}>Session ID</p>
+                        <p className={`text-sm font-mono mt-1 break-all ${isDark ? 'text-white/70' : 'text-gray-700'}`}>{sessionId || 'Loading...'}</p>
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-r from-[#FD366E]/10 to-[#FF6B9D]/10 border border-[#FD366E]/30 rounded-lg p-4">
-                      <p className="text-sm text-white/90 font-medium text-center flex items-center justify-center gap-2">
-                        <span>⚠️</span>
-                        <span>Once you click Start Exam, monitoring begins immediately. Make sure you are ready before proceeding.</span>
+                    {/* Warning Banner */}
+                    <div className={`rounded-lg border-l-4 border-[#FD366E] p-6 backdrop-blur-sm ${isDark ? 'bg-[#FD366E]/10' : 'bg-pink-50'}`}>
+                      <p className={`text-sm leading-relaxed ${isDark ? 'text-white/90' : 'text-gray-800'}`}>
+                        <strong>⚠️ Ready to start?</strong> Once you click &quot;Start Exam&quot;, monitoring begins immediately. Make sure you have completed all the setup checks above. You cannot pause the exam once started.
                       </p>
                     </div>
                   </div>
