@@ -73,6 +73,11 @@ export default function ExamPage() {
   const tabInactiveCountRef = useRef<number>(0);
   const TAB_INACTIVITY_THRESHOLD = 500; // 0.5 seconds without activity = flag (STRICTER)
   const TAB_INACTIVITY_TOLERANCE = 1500; // 1.5 seconds total before penalty (STRICTER)
+
+  // Tab restriction & fullscreen enforcement
+  const isFullscreenRef = useRef(false);
+  const TAB_SWITCH_ALERT = 'tab_switched_away';
+  const FULLSCREEN_EXIT_ALERT = 'exited_fullscreen';
   
   // Snapshot tracking - more rigorous criteria
   const lastSnapshotTimeRef = useRef<number>(0);
@@ -88,6 +93,64 @@ export default function ExamPage() {
 
   useEffect(() => {
     isStartedRef.current = isStarted;
+
+    if (isStarted) {
+      // Disable right-click context menu during exam
+      const handleContextMenu = (e: MouseEvent) => {
+        e.preventDefault();
+        console.log('[Blocked] Right-click context menu');
+        return false;
+      };
+
+      // Prevent text selection and copying
+      const handleSelectStart = (e: Event) => {
+        // Only block during exam
+        if (isStartedRef.current) {
+          (e as any).preventDefault?.();
+        }
+      };
+
+      // Prevent copy
+      const handleCopy = (e: ClipboardEvent) => {
+        e.preventDefault();
+        console.log('[Blocked] Copy attempt');
+        return false;
+      };
+
+      // Prevent cut
+      const handleCut = (e: ClipboardEvent) => {
+        e.preventDefault();
+        console.log('[Blocked] Cut attempt');
+        return false;
+      };
+
+      // Warn before unload
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = 'Are you sure you want to leave the exam? All progress will be lost.';
+        return e.returnValue;
+      };
+
+      document.addEventListener('contextmenu', handleContextMenu, true);
+      document.addEventListener('selectstart', handleSelectStart, true);
+      document.addEventListener('copy', handleCopy, true);
+      document.addEventListener('cut', handleCut, true);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
+      // Disable body selection
+      document.body.style.userSelect = 'none';
+      (document.body as any).style.webkitUserSelect = 'none';
+
+      return () => {
+        document.removeEventListener('contextmenu', handleContextMenu, true);
+        document.removeEventListener('selectstart', handleSelectStart, true);
+        document.removeEventListener('copy', handleCopy, true);
+        document.removeEventListener('cut', handleCut, true);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+        document.body.style.userSelect = 'auto';
+        (document.body as any).style.webkitUserSelect = 'auto';
+      };
+    }
   }, [isStarted]);
 
   useEffect(() => {
@@ -274,6 +337,23 @@ export default function ExamPage() {
       setStatus('Monitoring started');
       setIsStarted(true);
       isStartedRef.current = true;
+
+      // Request fullscreen for maximum security
+      try {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+          isFullscreenRef.current = true;
+          console.log('[Exam] Entered fullscreen mode');
+        } else if ((elem as any).webkitRequestFullscreen) {
+          await (elem as any).webkitRequestFullscreen();
+          isFullscreenRef.current = true;
+        }
+      } catch (error) {
+        console.warn('Could not enter fullscreen:', error);
+        // Still allow exam to proceed
+      }
+
       await captureAndAnalyze();
 
     } catch (error) {
@@ -477,6 +557,9 @@ export default function ExamPage() {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         flagTabInactive('visibility_hidden');
+        // Add tab switch alert - student switched to another tab
+        setManualAlerts((prev) => (prev.includes(TAB_SWITCH_ALERT) ? prev : [...prev, TAB_SWITCH_ALERT]));
+        console.log('[Tab Switch] Student switched away from exam tab');
       } else {
         updateActivity();
         clearTabInactiveFlag();
@@ -485,6 +568,8 @@ export default function ExamPage() {
 
     const handleWindowBlur = () => {
       flagTabInactive('window_blur');
+      // Also flag as tab switch for extra severity
+      setManualAlerts((prev) => (prev.includes(TAB_SWITCH_ALERT) ? prev : [...prev, TAB_SWITCH_ALERT]));
     };
 
     const handleWindowFocus = () => {
@@ -502,6 +587,53 @@ export default function ExamPage() {
 
     const handleMouseDown = () => {
       updateActivity();
+    };
+
+    // Block keyboard shortcuts that could open new tabs or navigate away
+    const handleKeyDownShortcuts = (e: KeyboardEvent) => {
+      if (!isStartedRef.current) return;
+
+      // Ctrl+T, Cmd+T - New Tab
+      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        console.log('[Blocked] Ctrl+T - New tab attempt');
+        return false;
+      }
+
+      // Ctrl+N, Cmd+N - New Window
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        console.log('[Blocked] Ctrl+N - New window attempt');
+        return false;
+      }
+
+      // Ctrl+W, Cmd+W - Close Tab
+      if ((e.ctrlKey || e.metaKey) && e.key === 'w') {
+        e.preventDefault();
+        console.log('[Blocked] Ctrl+W - Close tab attempt');
+        return false;
+      }
+
+      // Alt+Tab - Switch Application (Windows)
+      if (e.altKey && e.key === 'Tab') {
+        e.preventDefault();
+        console.log('[Blocked] Alt+Tab - App switch attempt');
+        return false;
+      }
+
+      // Cmd+Tab - Switch Application (Mac)
+      if (e.metaKey && e.key === 'Tab') {
+        e.preventDefault();
+        console.log('[Blocked] Cmd+Tab - App switch attempt');
+        return false;
+      }
+
+      // F11 - Fullscreen toggle (prevent exiting)
+      if (e.key === 'F11') {
+        e.preventDefault();
+        console.log('[Blocked] F11 - Fullscreen toggle attempt');
+        return false;
+      }
     };
 
     // Inactivity monitoring - check if user hasn't interacted in threshold
@@ -525,6 +657,31 @@ export default function ExamPage() {
     document.addEventListener('keydown', handleKeyDown, true); // Capture phase for better detection
     document.addEventListener('mousemove', handleMouseMove, true);
     document.addEventListener('mousedown', handleMouseDown, true);
+    document.addEventListener('keydown', handleKeyDownShortcuts, true); // Block dangerous shortcuts
+
+    // Fullscreen change detection
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement ||
+        (document as any).mozFullScreenElement
+      );
+
+      if (isFullscreenRef.current && !isCurrentlyFullscreen) {
+        // Student exited fullscreen
+        console.log('[Fullscreen] Student exited fullscreen - flagging as cheating attempt');
+        setManualAlerts((prev) => (prev.includes(FULLSCREEN_EXIT_ALERT) ? prev : [...prev, FULLSCREEN_EXIT_ALERT]));
+        setStatus('⚠️ Fullscreen exited - exam flagged');
+      } else if (!isFullscreenRef.current && isCurrentlyFullscreen) {
+        // Entered fullscreen
+        isFullscreenRef.current = true;
+        console.log('[Fullscreen] Entered fullscreen mode');
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
 
     return () => {
       clearInterval(inactivityInterval);
@@ -534,6 +691,10 @@ export default function ExamPage() {
       document.removeEventListener('keydown', handleKeyDown, true);
       document.removeEventListener('mousemove', handleMouseMove, true);
       document.removeEventListener('mousedown', handleMouseDown, true);
+      document.removeEventListener('keydown', handleKeyDownShortcuts, true);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
     };
   }, [isStarted]);
 
