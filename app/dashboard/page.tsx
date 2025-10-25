@@ -99,7 +99,7 @@ export default function DashboardPage() {
   const fetchCompletedExams = async () => {
     if (!user) return
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('exam_sessions')
       .select(`
         id,
@@ -107,6 +107,7 @@ export default function DashboardPage() {
         final_cheat_score,
         status,
         submitted_at,
+        exam_id,
         exams (
           id,
           title,
@@ -118,6 +119,11 @@ export default function DashboardPage() {
       .not('submitted_at', 'is', null)
       .order('submitted_at', { ascending: false })
 
+    if (error) {
+      console.error('Error fetching completed exams:', error)
+    }
+
+    console.log('Completed exams data:', data)
     setCompletedExams(data || [])
   }
 

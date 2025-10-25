@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
     const { error: updateError } = await supabase
       .from('exam_sessions')
       .update({
+        final_cheat_score: Math.round(finalCheatScore),
         status: finalCheatScore > 60 ? 'flagged' : 'submitted',
         submitted_at: new Date().toISOString(),
       })
