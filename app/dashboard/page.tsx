@@ -6,6 +6,17 @@ import { useRouter } from 'next/navigation'
 import type { Exam } from '@/lib/types/database'
 
 export default function DashboardPage() {
+  const [isDark, setIsDark] = useState(true)
+  useEffect(() => {
+    const theme = localStorage.getItem('theme')
+    setIsDark(theme !== 'light')
+  }, [])
+  const toggleTheme = () => {
+    setIsDark((prev) => {
+      localStorage.setItem('theme', prev ? 'light' : 'dark')
+      return !prev
+    })
+  }
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [exams, setExams] = useState<Exam[]>([])
@@ -87,35 +98,54 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#19191C]">
-        <div className="text-white/60">Loading...</div>
+      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#19191C]' : 'bg-white'}`}> 
+        <div className={isDark ? 'text-white/60' : 'text-gray-600'}>Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#19191C]">
+  <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#19191C]' : 'bg-white'}`}> 
       {/* Navigation */}
-      <nav className="bg-white/5 backdrop-blur-md shadow-sm border-b border-white/10">
+      <nav className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} backdrop-blur-md shadow-sm border-b`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-white">
-                Student Dashboard
-              </h1>
-              <span className="px-3 py-1 bg-gradient-to-r from-[#FD366E]/20 to-[#FF6B9D]/20 text-[#FD366E] text-xs font-semibold rounded-full border border-[#FD366E]/30">
-                STUDENT
-              </span>
+              <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Student Dashboard</h1>
+              <span className="px-3 py-1 bg-gradient-to-r from-[#FD366E]/20 to-[#FF6B9D]/20 text-[#FD366E] text-xs font-semibold rounded-full border border-[#FD366E]/30">STUDENT</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-white/70">
-                {user?.user_metadata?.full_name || user?.email}
-              </span>
+              <span className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-700'}`}>{user?.user_metadata?.full_name || user?.email}</span>
               <button
-                onClick={handleSignOut}
-                className="text-sm text-red-400 hover:text-red-300 font-medium"
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'}`}
+                aria-label="Toggle theme"
               >
-                Sign out
+                {isDark ? (
+                  <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                  </svg>
+                )}
+              </button>
+              <button onClick={handleSignOut} className={`text-sm font-medium ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-500'}`}>Sign out</button>
+              <button
+                onClick={toggleTheme}
+                className={`ml-2 p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'}`}
+                aria-label="Toggle theme"
+              >
+                {isDark ? (
+                  <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
@@ -125,12 +155,8 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">
-            Welcome, {user?.user_metadata?.full_name || 'Student'}!
-          </h2>
-          <p className="text-white/60">
-            View and take your scheduled exams
-          </p>
+          <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome, {user?.user_metadata?.full_name || 'Student'}!</h2>
+          <p className={isDark ? 'text-white/60' : 'text-gray-600'}>View and take your scheduled exams</p>
         </div>
 
         {/* Tabs */}
@@ -138,21 +164,13 @@ export default function DashboardPage() {
           <nav className="flex gap-8">
             <button
               onClick={() => setActiveTab('available')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'available'
-                  ? 'border-[#FD366E] text-[#FD366E]'
-                  : 'border-transparent text-white/60 hover:text-white/80'
-              }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'available' ? 'border-[#FD366E] text-[#FD366E]' : isDark ? 'border-transparent text-white/60 hover:text-white/80' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
             >
               Available Exams
             </button>
             <button
               onClick={() => setActiveTab('completed')}
-              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === 'completed'
-                  ? 'border-[#FD366E] text-[#FD366E]'
-                  : 'border-transparent text-white/60 hover:text-white/80'
-              }`}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'completed' ? 'border-[#FD366E] text-[#FD366E]' : isDark ? 'border-transparent text-white/60 hover:text-white/80' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
             >
               Completed Exams
             </button>
@@ -163,31 +181,25 @@ export default function DashboardPage() {
         {activeTab === 'available' && (
           <div className="space-y-4">
             {exams.length === 0 ? (
-              <div className="bg-white/5 border border-white/10 rounded-lg shadow p-12 text-center backdrop-blur-sm">
-                <svg className="w-16 h-16 mx-auto text-white/40 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} border rounded-lg shadow p-12 text-center backdrop-blur-sm`}>
+                <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-white/40' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3 className="text-lg font-medium text-white mb-2">
-                  No Available Exams
-                </h3>
-                <p className="text-white/60">
-                  Check back later for scheduled exams
-                </p>
+                <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No Available Exams</h3>
+                <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Check back later for scheduled exams</p>
               </div>
             ) : (
               exams.map((exam) => (
                 <div
                   key={exam.id}
-                  className="bg-white/5 border border-white/10 rounded-lg shadow hover:shadow-lg hover:border-[#FD366E]/30 transition-all p-6 backdrop-blur-sm"
+                  className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} border rounded-lg shadow hover:shadow-lg hover:border-[#FD366E]/30 transition-all p-6 backdrop-blur-sm`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-white">
-                          {exam.title}
-                        </h3>
+                        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{exam.title}</h3>
                         {isExamActive(exam) && (
-                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full flex items-center gap-1 border border-green-500/30">
+                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full flex items-center gap-1 border border-green-500/30"> 
                             <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -196,34 +208,23 @@ export default function DashboardPage() {
                           </span>
                         )}
                         {isExamUpcoming(exam) && (
-                          <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
-                            UPCOMING
-                          </span>
+                          <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">UPCOMING</span>
                         )}
                       </div>
-                      
                       {exam.description && (
-                        <p className="text-white/60 mb-4">
-                          {exam.description}
-                        </p>
+                        <p className={isDark ? 'text-white/60 mb-4' : 'text-gray-600 mb-4'}>{exam.description}</p>
                       )}
-                      
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <div>
-                          <p className="text-sm text-white/60">Start Time</p>
-                          <p className="text-sm font-medium text-white">
-                            {formatDate(exam.start_time)}
-                          </p>
+                          <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Start Time</p>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatDate(exam.start_time)}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-white/60">Duration</p>
-                          <p className="text-sm font-medium text-white">
-                            {exam.duration_minutes} minutes
-                          </p>
+                          <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Duration</p>
+                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{exam.duration_minutes} minutes</p>
                         </div>
                       </div>
                     </div>
-                    
                     <div className="ml-6">
                       {isExamActive(exam) ? (
                         <button 
@@ -233,19 +234,9 @@ export default function DashboardPage() {
                           Start Exam
                         </button>
                       ) : isExamUpcoming(exam) ? (
-                        <button
-                          disabled
-                          className="px-6 py-3 bg-white/5 text-white/40 rounded-lg cursor-not-allowed font-medium border border-white/10"
-                        >
-                          Not Started
-                        </button>
+                        <button disabled className={`${isDark ? 'bg-white/5 text-white/40 border-white/10' : 'bg-gray-100 text-gray-400 border-gray-200'} px-6 py-3 rounded-lg cursor-not-allowed font-medium border`}>Not Started</button>
                       ) : (
-                        <button
-                          disabled
-                          className="px-6 py-3 bg-white/5 text-white/40 rounded-lg cursor-not-allowed font-medium border border-white/10"
-                        >
-                          Ended
-                        </button>
+                        <button disabled className={`${isDark ? 'bg-white/5 text-white/40 border-white/10' : 'bg-gray-100 text-gray-400 border-gray-200'} px-6 py-3 rounded-lg cursor-not-allowed font-medium border`}>Ended</button>
                       )}
                     </div>
                   </div>
@@ -256,16 +247,12 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'completed' && (
-          <div className="bg-white/5 border border-white/10 rounded-lg shadow p-12 text-center backdrop-blur-sm">
-            <svg className="w-16 h-16 mx-auto text-white/40 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} border rounded-lg shadow p-12 text-center backdrop-blur-sm`}>
+            <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-white/40' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className="text-lg font-medium text-white mb-2">
-              No Completed Exams
-            </h3>
-            <p className="text-white/60">
-              Your completed exams will appear here
-            </p>
+            <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No Completed Exams</h3>
+            <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Your completed exams will appear here</p>
           </div>
         )}
       </main>

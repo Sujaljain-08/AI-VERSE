@@ -8,6 +8,7 @@ type ViewStatus = 'idle' | 'connecting' | 'waiting_offer' | 'watching' | 'error'
 
 export default function ViewerPage() {
   const supabase = useMemo(() => createClient(), [])
+  const [isDark, setIsDark] = useState(true)
   const [roomId, setRoomId] = useState('')
   const [status, setStatus] = useState<ViewStatus>('idle')
   const [message, setMessage] = useState<string | null>(null)
@@ -16,6 +17,18 @@ export default function ViewerPage() {
   const videoRef = useRef<HTMLVideoElement>(null)
   const channelRef = useRef<RealtimeChannel | null>(null)
   const peerRef = useRef<RTCPeerConnection | null>(null)
+
+  useEffect(() => {
+    const theme = localStorage.getItem('theme')
+    setIsDark(theme !== 'light')
+  }, [])
+
+  const toggleTheme = () => {
+    setIsDark((prev) => {
+      localStorage.setItem('theme', prev ? 'light' : 'dark')
+      return !prev
+    })
+  }
 
   useEffect(() => {
     setIsMounted(true)
@@ -139,23 +152,38 @@ export default function ViewerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className={`min-h-screen transition-colors duration-300 p-6 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <button
+        onClick={toggleTheme}
+        className={`absolute top-6 right-6 p-2 rounded-lg transition-colors z-50 ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-200 hover:bg-gray-300'}`}
+        aria-label="Toggle theme"
+      >
+        {isDark ? (
+          <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
+          </svg>
+        ) : (
+          <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+          </svg>
+        )}
+      </button>
       <div className="max-w-4xl mx-auto space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Viewer Console</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
+          <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Viewer Console</h1>
+          <p className={`mt-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Join a WebRTC stream by entering the room identifier provided by the streamer.
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow space-y-4">
+        <div className={`p-6 rounded-xl shadow space-y-4 ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
               placeholder="Room identifier (e.g., math-final-1)"
               value={roomId}
               onChange={(event) => setRoomId(event.target.value)}
-              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`flex-1 rounded-lg border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 ${isDark ? 'border-gray-600 bg-gray-900 text-gray-100' : 'border-gray-300 bg-white text-gray-800'}`}
             />
             <div className="flex gap-3">
               <button
