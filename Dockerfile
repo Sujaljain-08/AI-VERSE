@@ -49,5 +49,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Expose port
 EXPOSE 8000
 
-# Run the application with SSL/TLS via startup script
-CMD ["bash", "./model_prediction/startup.sh"]
+# Run the application - Python will check for SSL certs and use them if available
+CMD ["python", "model_prediction/api.py"]

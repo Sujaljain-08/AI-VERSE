@@ -548,11 +548,34 @@ async def get_stats():
 
 if __name__ == "__main__":
     import uvicorn
+    import ssl
+    import os
     
     logger.info("Starting FastAPI server...")
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info"
-    )
+    
+    # Check if SSL certificates exist
+    cert_file = "/app/cert.pem"
+    key_file = "/app/key.pem"
+    
+    ssl_keyfile = key_file if os.path.exists(key_file) else None
+    ssl_certfile = cert_file if os.path.exists(cert_file) else None
+    
+    if ssl_keyfile and ssl_certfile:
+        logger.info(f"Starting with SSL certificates")
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=8000,
+            log_level="info",
+            ssl_keyfile=ssl_keyfile,
+            ssl_certfile=ssl_certfile
+        )
+    else:
+        logger.warning("SSL certificates not found, starting without SSL")
+        uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=8000,
+            log_level="info"
+        )
+
