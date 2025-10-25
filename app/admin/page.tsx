@@ -135,7 +135,7 @@ export default function AdminPage() {
         {/* Header */}
         <div className="mb-8">
           <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Live Exam Monitoring</h2>
-          <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Real-time cheat detection and student monitoring</p>
+          <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Real-time average cheat score tracking</p>
         </div>
 
         {/* Filter by Exam */}
@@ -154,65 +154,22 @@ export default function AdminPage() {
         </div>
 
         {/* Leaderboard */}
-        <div className="bg-white/5 border border-white/10 rounded-lg shadow-lg p-6 backdrop-blur-sm">
+        <div className={`border rounded-lg shadow-lg p-6 backdrop-blur-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Cheat Detection Leaderboard</h3>
-              <p className={`text-sm mt-1 ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Students ranked by suspicious activity (highest first)</p>
+              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Active Students (Sorted by Risk)</h3>
+              <p className={`text-sm mt-1 ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Updates every 3 seconds - Average cheat score</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
               </span>
-              <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Live Updates</span>
+              <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Live</span>
             </div>
           </div>
 
-          <Leaderboard examId={activeExam} onSelectStudent={handleSelectStudent} />
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div className={`rounded-lg shadow p-6 backdrop-blur-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200 border'}`}> 
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Active Sessions</p>
-                <p className={`text-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>--</p>
-              </div>
-              <div className="p-3 bg-blue-500/20 rounded-lg">
-                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className={`rounded-lg shadow p-6 backdrop-blur-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200 border'}`}> 
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>High Risk</p>
-                <p className="text-2xl font-bold text-red-400 mt-1">--</p>
-              </div>
-              <div className="p-3 bg-red-500/20 rounded-lg">
-                <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div className={`rounded-lg shadow p-6 backdrop-blur-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200 border'}`}> 
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Total Exams</p>
-                <p className={`text-2xl font-bold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{exams.length}</p>
-              </div>
-              <div className="p-3 bg-green-500/20 rounded-lg">
-                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-          </div>
+          <Leaderboard examId={activeExam} onSelectStudent={handleSelectStudent} isDark={isDark} />
         </div>
       </main>
 
