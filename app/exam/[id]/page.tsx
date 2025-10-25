@@ -315,6 +315,8 @@ export default function ExamPage() {
 
     try {
       tabInactiveRef.current = false;
+      tabInactiveCountRef.current = 0;
+      lastActivityTimeRef.current = Date.now(); // Initialize activity timer
       setManualAlerts([]);
       remoteAlertsRef.current = [];
       setAlerts([]);
@@ -1160,29 +1162,6 @@ export default function ExamPage() {
                 )}
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className={`rounded-lg px-6 py-5 ${isDark ? 'bg-[#FD366E]/10 border border-[#FD366E]/30' : 'bg-pink-50 border border-pink-200'}`}>
-          <h4 className={`font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-            <span>📋</span> Final Checklist
-          </h4>
-          <div className={`flex flex-wrap gap-x-6 gap-y-2 text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
-            <span className="flex items-center gap-2">
-              <span className="text-[#FD366E]">•</span> Keep looking at the screen
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="text-[#FD366E]">•</span> Stay fully within the camera frame
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="text-[#FD366E]">•</span> Avoid looking away or leaving the tab
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="text-[#FD366E]">•</span> Keep phones and tablets out of view
-            </span>
-            <span className="flex items-center gap-2">
-              <span className="text-[#FD366E]">•</span> Admin can view you live at any time
-            </span>
           </div>
         </div>
       </div>
