@@ -9,8 +9,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Forward the request to the ML server
-    const response = await fetch(`${ML_SERVER_URL}/analyze`, {
+    // Forward the request to the ML server's HTTP endpoint
+    const response = await fetch(`${ML_SERVER_URL}/analyze-frame`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
