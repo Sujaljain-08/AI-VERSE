@@ -34,6 +34,7 @@ export default function ExamPage() {
   const [manualAlerts, setManualAlerts] = useState<string[]>([]);
   const [isDesktop, setIsDesktop] = useState(false);
   const [questionPaneWidth, setQuestionPaneWidth] = useState(0.65);
+  const [showFullscreenPrompt, setShowFullscreenPrompt] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -59,7 +60,6 @@ export default function ExamPage() {
   // Tab restriction & fullscreen enforcement
   const isFullscreenRef = useRef(false);
   const TAB_SWITCH_ALERT = 'tab_switched_away';
-  const FULLSCREEN_EXIT_ALERT = 'exited_fullscreen';
   
   // Snapshot tracking - more rigorous criteria
   const lastSnapshotTimeRef = useRef<number>(0);
@@ -568,13 +568,14 @@ export default function ExamPage() {
       );
 
       if (isFullscreenRef.current && !isCurrentlyFullscreen) {
-        // Student exited fullscreen
-        console.log('[Fullscreen] Student exited fullscreen - flagging as cheating attempt');
-        setManualAlerts((prev) => (prev.includes(FULLSCREEN_EXIT_ALERT) ? prev : [...prev, FULLSCREEN_EXIT_ALERT]));
-        setStatus('⚠️ Fullscreen exited - exam flagged');
+        // Student exited fullscreen - show prompt to return
+        console.log('[Fullscreen] Student exited fullscreen - showing prompt');
+        setShowFullscreenPrompt(true);
+        setStatus('⚠️ Please return to fullscreen');
       } else if (!isFullscreenRef.current && isCurrentlyFullscreen) {
         // Entered fullscreen
         isFullscreenRef.current = true;
+        setShowFullscreenPrompt(false);
         console.log('[Fullscreen] Entered fullscreen mode');
       }
     };
@@ -698,8 +699,8 @@ export default function ExamPage() {
 
     const result = await response.json();
     if (result.success) {
-      alert(`Exam submitted! Final cheat score: ${result.final_cheat_score}%`);
-      router.push('/dashboard');
+      // Redirect to results page with score and status
+      router.push(`/exam/${examId}/results?score=${result.final_cheat_score}&status=${result.status}&sessionId=${sessionId}`);
     }
   };
 
@@ -723,6 +724,43 @@ export default function ExamPage() {
 
   return (
     <div className="min-h-screen py-8 bg-[#19191C]">
+      {/* Fullscreen Re-enter Button */}
+      {showFullscreenPrompt && isStarted && (
+        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50">
+          <div className="bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] rounded-2xl shadow-2xl shadow-pink-500/50 p-8 border border-white/20 backdrop-blur-xl max-w-md">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-white">Please Return to Fullscreen</h3>
+              <p className="text-white/90 text-sm">
+                You exited fullscreen mode. Click below to continue your exam in fullscreen.
+              </p>
+              <button
+                onClick={() => {
+                  const elem = document.documentElement;
+                  if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                  } else if ((elem as any).webkitRequestFullscreen) {
+                    (elem as any).webkitRequestFullscreen();
+                  } else if ((elem as any).mozRequestFullScreen) {
+                    (elem as any).mozRequestFullScreen();
+                  }
+                }}
+                className="w-full bg-white text-[#FD366E] font-bold py-4 px-6 rounded-xl hover:bg-white/90 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+                Return to Fullscreen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="relative z-10 max-w-6xl mx-auto flex flex-col gap-6 h-full px-4 lg:px-0">
         <div className="rounded-lg shadow-md p-6 bg-white/5 border border-white/10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [exams, setExams] = useState<Exam[]>([])
+  const [completedExams, setCompletedExams] = useState<any[]>([])
   const [activeTab, setActiveTab] = useState<'available' | 'completed'>('available')
   
   const router = useRouter()
@@ -27,8 +28,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     checkUser()
-    fetchExams()
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      if (activeTab === 'available') {
+        fetchExams()
+      } else {
+        fetchCompletedExams()
+      }
+    }
+  }, [user, activeTab])
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -65,6 +75,31 @@ export default function DashboardPage() {
       .order('start_time', { ascending: true })
     
     setExams(data || [])
+  }
+
+  const fetchCompletedExams = async () => {
+    if (!user) return
+
+    const { data } = await supabase
+      .from('exam_sessions')
+      .select(`
+        id,
+        session_id,
+        final_cheat_score,
+        status,
+        submitted_at,
+        exams (
+          id,
+          title,
+          description,
+          duration_minutes
+        )
+      `)
+      .eq('student_id', user.id)
+      .not('submitted_at', 'is', null)
+      .order('submitted_at', { ascending: false })
+
+    setCompletedExams(data || [])
   }
 
   const handleSignOut = async () => {
@@ -232,12 +267,75 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'completed' && (
-          <div className={`bg-white/5 border-white/10 border rounded-lg shadow p-12 text-center backdrop-blur-sm`}>
-            <svg className={`w-16 h-16 mx-auto mb-4 text-white/40`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className={`text-lg font-medium mb-2 text-white`}>No Completed Exams</h3>
-            <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Your completed exams will appear here</p>
+          <div className="space-y-4">
+            {completedExams.length === 0 ? (
+              <div className={`bg-white/5 border-white/10 border rounded-lg shadow p-12 text-center backdrop-blur-sm`}>
+                <svg className={`w-16 h-16 mx-auto mb-4 text-white/40`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className={`text-lg font-medium mb-2 text-white`}>No Completed Exams</h3>
+                <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Your completed exams will appear here</p>
+              </div>
+            ) : (
+              completedExams.map((session: any) => (
+                <div
+                  key={session.id}
+                  className={`bg-white/5 border-white/10 border rounded-lg shadow hover:shadow-lg hover:border-[#FD366E]/30 transition-all p-6 backdrop-blur-sm`}
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className={`text-xl font-bold text-white`}>{session.exams?.title || 'Exam'}</h3>
+                        {session.status === 'flagged' ? (
+                          <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs font-semibold rounded-full flex items-center gap-1 border border-red-500/30">
+                            <span>⚠️</span>
+                            FLAGGED
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full flex items-center gap-1 border border-green-500/30">
+                            <span>✓</span>
+                            SUBMITTED
+                          </span>
+                        )}
+                      </div>
+                      {session.exams?.description && (
+                        <p className={isDark ? 'text-white/60 mb-4' : 'text-gray-600 mb-4'}>{session.exams.description}</p>
+                      )}
+                      <div className="grid grid-cols-3 gap-4 mt-4">
+                        <div>
+                          <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Submitted</p>
+                          <p className={`text-sm font-medium text-white`}>{formatDate(session.submitted_at)}</p>
+                        </div>
+                        <div>
+                          <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Cheat Score</p>
+                          <p className={`text-sm font-medium ${
+                            session.final_cheat_score >= 30 
+                              ? 'text-red-400' 
+                              : session.final_cheat_score >= 15 
+                              ? 'text-yellow-400' 
+                              : 'text-green-400'
+                          }`}>
+                            {session.final_cheat_score}%
+                          </p>
+                        </div>
+                        <div>
+                          <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Duration</p>
+                          <p className={`text-sm font-medium text-white`}>{session.exams?.duration_minutes || 'N/A'} min</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="ml-6">
+                      <button 
+                        onClick={() => router.push(`/exam/${session.exams?.id}/results?score=${session.final_cheat_score}&status=${session.status}&sessionId=${session.session_id}`)}
+                        className="px-6 py-3 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-all font-medium border border-white/20"
+                      >
+                        View Results
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         )}
       </main>
