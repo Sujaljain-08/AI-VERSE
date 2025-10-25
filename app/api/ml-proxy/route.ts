@@ -3,8 +3,6 @@ import { NextRequest } from 'next/server'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-const ML_SERVER_URL = 'http://aiverse-ml.eastus.azurecontainer.io:8000'
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -12,7 +10,7 @@ export async function POST(request: NextRequest) {
     console.log('[ML Proxy] Received frame, forwarding to ML server...')
     
     // Forward the request to the ML server's HTTP endpoint
-    const response = await fetch(`${ML_SERVER_URL}/analyze-frame`, {
+    const response = await fetch(`${process.env.ML_SERVER_URL}/analyze-frame`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

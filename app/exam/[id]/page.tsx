@@ -51,6 +51,7 @@ export default function ExamPage() {
   const tabInactiveRef = useRef(false);
   const manualAlertsRef = useRef<string[]>([]);
   const remoteAlertsRef = useRef<string[]>([]);
+  const isStartedRef = useRef(false);
   const TAB_INACTIVE_ALERT = 'tab_inactive';
   const layoutRef = useRef<HTMLDivElement | null>(null);
   const isResizingRef = useRef(false);
@@ -59,6 +60,10 @@ export default function ExamPage() {
     manualAlertsRef.current = manualAlerts;
     setAlerts(Array.from(new Set([...remoteAlertsRef.current, ...manualAlerts])));
   }, [manualAlerts]);
+
+  useEffect(() => {
+    isStartedRef.current = isStarted;
+  }, [isStarted]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -243,7 +248,8 @@ export default function ExamPage() {
       console.log('Starting ML analysis via HTTP');
       setStatus('Monitoring started');
       setIsStarted(true);
-      captureAndAnalyze();
+      isStartedRef.current = true;
+      await captureAndAnalyze();
 
     } catch (error) {
       console.error('Failed to start exam:', error);
@@ -253,13 +259,13 @@ export default function ExamPage() {
 
   // Capture frame and send to ML model via HTTP POST
   const captureAndAnalyze = async () => {
-    if (!isStarted) {
+    if (!isStartedRef.current) {
       console.log('[Capture] Stopped - exam not started');
       return;
     }
     if (!videoRef.current || !canvasRef.current) {
       console.log('[Capture] Waiting for video/canvas...');
-      setTimeout(captureAndAnalyze, 100);
+      setTimeout(captureAndAnalyze, 1000);
       return;
     }
 
@@ -277,8 +283,8 @@ export default function ExamPage() {
 
     // Send frame to ML server via HTTP POST
     try {
-      const ML_SERVER_URL = process.env.NEXT_PUBLIC_ML_SERVER_URL || '/api/ml-proxy';
-      const response = await fetch(ML_SERVER_URL, {
+      const baseUrl = process.env.NEXT_PUBLIC_ML_SERVER_URL || '/api/ml-proxy';
+      const response = await fetch(baseUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ frame: imageData }),
@@ -514,6 +520,9 @@ export default function ExamPage() {
     remoteAlertsRef.current = [];
     setManualAlerts([]);
     setAlerts([]);
+
+    console.log("SUBMITTED");
+    isStartedRef.current = false;
     setIsStarted(false);
 
     // Submit exam
@@ -533,6 +542,7 @@ export default function ExamPage() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      isStartedRef.current = false;
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
