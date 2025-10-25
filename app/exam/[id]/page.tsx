@@ -443,7 +443,7 @@ export default function ExamPage() {
               <ul className="space-y-1">
                 <li>• Keep looking at the screen</li>
                 <li>• Stay in camera frame</li>
-                <li>• Don't look away for long</li>
+                <li>• Do not look away for long</li>
                 <li>• Admin can view you live</li>
               </ul>
             </div>

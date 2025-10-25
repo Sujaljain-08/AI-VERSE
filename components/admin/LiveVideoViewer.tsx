@@ -181,7 +181,7 @@ export default function LiveVideoViewer({ student, roomId, onClose }: LiveVideoV
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-white text-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                      <p>Connecting to student's camera...</p>
+                      <p>Connecting to student&apos;s camera...</p>
                     </div>
                   </div>
                 )}
@@ -190,7 +190,7 @@ export default function LiveVideoViewer({ student, roomId, onClose }: LiveVideoV
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-red-400 text-center">
                       <p className="text-xl mb-2">⚠️ Connection Failed</p>
-                      <p className="text-sm">Student's camera may be offline</p>
+                      <p className="text-sm">Student&apos;s camera may be offline</p>
                     </div>
                   </div>
                 )}
