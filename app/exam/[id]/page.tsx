@@ -626,24 +626,12 @@ export default function ExamPage() {
           </svg>
         )}
       </button>
-      {/* Grid Pattern Background */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px'
-        }}></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#19191C]/50 to-[#19191C]"></div>
-      </div>
 
       <div className="relative z-10 max-w-6xl mx-auto flex flex-col gap-6 h-full px-4 lg:px-0">
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6">
+        <div className={`rounded-lg shadow-md p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-white">{examTitle}</h1>
-              <p className="text-white/60 text-sm mt-1">Session ID: {sessionId || 'Loading...'}</p>
+              <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{examTitle}</h1>
             </div>
             <div className="flex items-center gap-2">
               {isStarted ? (
@@ -652,10 +640,10 @@ export default function ExamPage() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FD366E] opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FD366E]"></span>
                   </span>
-                  <span className="text-sm text-[#FD366E] font-semibold">Monitoring Active</span>
+                  <span className={`text-sm font-semibold ${isDark ? 'text-[#FD366E]' : 'text-pink-600'}`}>Monitoring Active</span>
                 </>
               ) : (
-                <span className="text-sm text-white/60 font-semibold">Waiting to Start</span>
+                <span className={`text-sm font-semibold ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Ready to Start</span>
               )}
             </div>
           </div>
@@ -666,7 +654,7 @@ export default function ExamPage() {
             className="relative flex flex-col"
             style={isDesktop ? { flexBasis: `${(questionPaneWidth * 100).toFixed(2)}%`, maxWidth: `${(questionPaneWidth * 100).toFixed(2)}%` } : undefined}
           >
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6 flex-1">
+            <div className={`rounded-lg shadow-md p-6 flex-1 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               {!isStarted ? (
                 // Show instructions before exam starts
                 <>
@@ -867,10 +855,10 @@ export default function ExamPage() {
               <canvas ref={canvasRef} className="hidden" />
             </div>
 
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6 flex flex-col gap-4">
+            <div className={`rounded-lg shadow-md p-6 flex flex-col gap-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-white">Exam Controls</h3>
-                <span className="text-sm text-white/60">
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Exam Controls</h3>
+                <span className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
                   {isStarted ? 'Session active' : 'Session not started'}
                 </span>
               </div>
@@ -892,14 +880,14 @@ export default function ExamPage() {
                   </button>
                 )}
               </div>
-              <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-sm text-white/70">
+              <div className={`rounded-lg px-4 py-3 text-sm ${isDark ? 'bg-white/5 border border-white/10 text-white/70' : 'bg-gray-100 border border-gray-300 text-gray-700'}`}>
                 {status}
               </div>
             </div>
 
-            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6 flex flex-col gap-4">
+            <div className={`rounded-lg shadow-md p-6 flex flex-col gap-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-white">Detection Results</h3>
+                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Detection Results</h3>
                 <span
                   className={`text-2xl font-bold ${
                     currentScore >= 85
@@ -914,7 +902,7 @@ export default function ExamPage() {
                   {currentScore}%
                 </span>
               </div>
-              <div className="bg-white/10 rounded-full h-3 overflow-hidden">
+              <div className={`rounded-full h-3 overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-300'}`}>
                 <div
                   className={`h-full transition-all ${
                     currentScore >= 85
@@ -928,16 +916,16 @@ export default function ExamPage() {
                   style={{ width: `${currentScore}%` }}
                 />
               </div>
-              <div className="text-sm text-white/70">
-                <p className="font-semibold text-white mb-1">Current state:</p>
+              <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
+                <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Current state:</p>
                 <p>{status}</p>
               </div>
               <div>
-                <p className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                <p className={`text-sm font-semibold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                   <span>🚨</span> Live alerts
                 </p>
                 {alerts.length === 0 ? (
-                  <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60 text-center">
+                  <div className={`rounded-lg border px-4 py-3 text-sm text-center ${isDark ? 'border-white/10 bg-white/5 text-white/60' : 'border-gray-300 bg-gray-100 text-gray-600'}`}>
                     No suspicious activity detected
                   </div>
                 ) : (
@@ -958,11 +946,11 @@ export default function ExamPage() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-r from-[#FD366E]/10 to-[#FF6B9D]/10 backdrop-blur-md border border-[#FD366E]/30 rounded-lg px-6 py-5">
-          <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+        <div className={`rounded-lg px-6 py-5 ${isDark ? 'bg-[#FD366E]/10 border border-[#FD366E]/30' : 'bg-pink-50 border border-pink-200'}`}>
+          <h4 className={`font-semibold mb-3 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             <span>📋</span> Final Checklist
           </h4>
-          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/80">
+          <div className={`flex flex-wrap gap-x-6 gap-y-2 text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
             <span className="flex items-center gap-2">
               <span className="text-[#FD366E]">•</span> Keep looking at the screen
             </span>
