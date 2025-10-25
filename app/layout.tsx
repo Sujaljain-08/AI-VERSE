@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Exam Face Detection",
-  description: "Next.js application for exam face detection",
+  title: "ExamProctor | AI-Powered Exam Monitoring & Proctoring",
+  description: "Advanced AI-powered exam proctoring solution with real-time cheat detection, live monitoring, and comprehensive analytics for secure online assessments.",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
