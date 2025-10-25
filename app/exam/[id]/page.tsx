@@ -49,36 +49,56 @@ export default function ExamPage() {
   // Fetch exam details and start session
   useEffect(() => {
     const initExam = async () => {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/login');
-        return;
-      }
-      setUserId(user.id);
+      try {
+        // Get current user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          router.push('/login');
+          return;
+        }
+        setUserId(user.id);
 
-      // Fetch exam details
-      const { data: exam } = await supabase
-        .from('exams')
-        .select('title')
-        .eq('id', examId)
-        .single();
+        // Fetch exam details
+        const { data: exam } = await supabase
+          .from('exams')
+          .select('title')
+          .eq('id', examId)
+          .single();
 
-      if (exam) {
+        if (!exam) {
+          setStatus('Exam not found');
+          setTimeout(() => router.push('/dashboard'), 2000);
+          return;
+        }
+
         setExamTitle(exam.title);
-      }
 
-      // Start exam session
-      const response = await fetch('/api/exam/start', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ exam_id: examId, student_id: user.id }),
-      });
+        // Start exam session
+        const response = await fetch('/api/exam/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ exam_id: examId, student_id: user.id }),
+        });
 
-      const result = await response.json();
-      if (result.success) {
-        setSessionId(result.session_id);
-        setRoomId(`exam-${result.session_id}`);
+        if (!response.ok) {
+          const error = await response.json();
+          setStatus(`Error: ${error.error || 'Failed to start exam'}`);
+          setTimeout(() => router.push('/dashboard'), 2000);
+          return;
+        }
+
+        const result = await response.json();
+        if (result.success) {
+          setSessionId(result.session_id);
+          setRoomId(`exam-${result.session_id}`);
+        } else {
+          setStatus(`Error: ${result.error || 'Failed to start exam'}`);
+          setTimeout(() => router.push('/dashboard'), 2000);
+        }
+      } catch (error) {
+        console.error('Error initializing exam:', error);
+        setStatus('Error initializing exam');
+        setTimeout(() => router.push('/dashboard'), 2000);
       }
     };
 
