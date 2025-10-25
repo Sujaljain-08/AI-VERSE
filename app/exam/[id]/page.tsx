@@ -253,8 +253,15 @@ export default function ExamPage() {
 
   // Capture frame and send to ML model via HTTP POST
   const captureAndAnalyze = async () => {
-    if (!isStarted) return;
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!isStarted) {
+      console.log('[Capture] Stopped - exam not started');
+      return;
+    }
+    if (!videoRef.current || !canvasRef.current) {
+      console.log('[Capture] Waiting for video/canvas...');
+      setTimeout(captureAndAnalyze, 100);
+      return;
+    }
 
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -280,6 +287,8 @@ export default function ExamPage() {
       if (response.ok) {
         const result: AnalysisResult = await response.json();
         
+        console.log('[ML Result]', result.success ? '✅' : '❌', `Focus: ${result.focus_score}`);
+        
         if (result.success) {
           setCurrentScore(Math.round(result.focus_score));
           setStatus(result.status);
@@ -289,15 +298,18 @@ export default function ExamPage() {
 
           // Add to buffer
           scoreBufferRef.current.push(result);
+          console.log('[Score Buffer] Size:', scoreBufferRef.current.length);
 
           // Save snapshot if suspicious (focus_score < 50)
           if (result.focus_score < 50) {
             captureSnapshot();
           }
         }
+      } else {
+        console.error('[ML Error]', response.status, await response.text());
       }
     } catch (error) {
-      console.error('ML analysis error:', error);
+      console.error('[ML analysis error]', error);
     }
 
     // Continue at 30 FPS
