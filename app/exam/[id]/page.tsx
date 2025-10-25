@@ -55,6 +55,13 @@ export default function ExamPage() {
   const TAB_INACTIVE_ALERT = 'tab_inactive';
   const layoutRef = useRef<HTMLDivElement | null>(null);
   const isResizingRef = useRef(false);
+  
+  // Snapshot tracking - more rigorous criteria
+  const lastSnapshotTimeRef = useRef<number>(0);
+  const lowScoreCountRef = useRef<number>(0);
+  const SNAPSHOT_COOLDOWN = 10000; // 10 seconds between snapshots
+  const LOW_SCORE_THRESHOLD = 30; // Only capture if score < 30 (very suspicious)
+  const CONSECUTIVE_LOW_SCORES = 3; // Need 3 consecutive low scores
 
   useEffect(() => {
     manualAlertsRef.current = manualAlerts;
@@ -306,9 +313,42 @@ export default function ExamPage() {
           scoreBufferRef.current.push(result);
           console.log('[Score Buffer] Size:', scoreBufferRef.current.length);
 
-          // Save snapshot if suspicious (focus_score < 50)
-          if (result.focus_score < 50) {
+          // More rigorous snapshot criteria
+          const now = Date.now();
+          const timeSinceLastSnapshot = now - lastSnapshotTimeRef.current;
+          const hasCriticalAlerts = remoteAlerts.some(alert => 
+            alert.includes('device_detected') || 
+            alert.includes('looking_away') || 
+            alert.includes('no_face')
+          );
+
+          // Track consecutive low scores
+          if (result.focus_score < LOW_SCORE_THRESHOLD) {
+            lowScoreCountRef.current++;
+          } else {
+            lowScoreCountRef.current = 0; // Reset if score improves
+          }
+
+          // Only capture snapshot if:
+          // 1. Cooldown period has passed (10 seconds)
+          // 2. Score is critically low (< 30) for 3 consecutive frames
+          // 3. OR there are critical alerts present
+          const shouldCapture = 
+            timeSinceLastSnapshot > SNAPSHOT_COOLDOWN &&
+            (
+              (lowScoreCountRef.current >= CONSECUTIVE_LOW_SCORES) ||
+              hasCriticalAlerts
+            );
+
+          if (shouldCapture) {
+            console.log('[Snapshot Trigger]', {
+              lowScoreCount: lowScoreCountRef.current,
+              hasCriticalAlerts,
+              currentScore: result.focus_score
+            });
             captureSnapshot();
+            lastSnapshotTimeRef.current = now;
+            lowScoreCountRef.current = 0; // Reset counter after capture
           }
         }
       } else {
