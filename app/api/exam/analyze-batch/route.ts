@@ -6,7 +6,10 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const { scores, sessionId } = await request.json()
 
+    console.log('[Analyze Batch] Received:', { sessionId, scoreCount: scores?.length })
+
     if (!scores || !Array.isArray(scores) || !sessionId) {
+      console.error('[Analyze Batch] Invalid payload:', { hasScores: !!scores, isArray: Array.isArray(scores), hasSessionId: !!sessionId })
       return NextResponse.json(
         { error: 'Missing scores or sessionId' },
         { status: 400 }
