@@ -62,6 +62,51 @@ class FocusMonitor:
         self.last_status_text = ""
         
         logger.info("FocusMonitor initialized successfully")
+
+    def _detect_handheld_devices(self, gray_frame: np.ndarray) -> bool:
+        """Detect handheld electronic devices (phones/tablets) even when tilted."""
+        lower_start = gray_frame.shape[0] // 2
+        lower_gray = gray_frame[lower_start:, :]
+
+        blurred = cv2.GaussianBlur(lower_gray, (7, 7), 0)
+        edges = cv2.Canny(blurred, 40, 120)
+        kernel = np.ones((3, 3), np.uint8)
+        edges = cv2.dilate(edges, kernel, iterations=1)
+        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel, iterations=2)
+
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area < 900:
+                continue
+
+            rect = cv2.minAreaRect(contour)
+            (_, _), (w, h), _ = rect
+
+            if w < 28 or h < 28:
+                continue
+
+            long_side = max(w, h)
+            short_side = min(w, h)
+            if short_side == 0:
+                continue
+
+            aspect_ratio = long_side / short_side
+            if aspect_ratio > 5.0:
+                continue
+
+            rect_area = w * h
+            if rect_area <= 0:
+                continue
+
+            solidity = area / rect_area
+            if solidity < 0.55:
+                continue
+
+            return True
+
+        return False
     
     def analyze_frame(self, frame: np.ndarray) -> Dict:
         """Analyze a single frame and return focus metrics - EXACT LOGIC FROM WORKING main.py"""
@@ -70,6 +115,7 @@ class FocusMonitor:
             return self._error_response("Invalid frame")
         
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        device_detected = self._detect_handheld_devices(gray)
         
         # Detect faces (EXACT parameters from main.py)
         faces = self.face_cascade.detectMultiScale(
@@ -206,9 +252,6 @@ class FocusMonitor:
                     if "LOOKING" not in status_text:
                         status_text += " (Too Far)"
             
-            # Cap score at 100
-            frame_score = max(0.0, min(100.0, frame_score))
-        
         elif len(profile_faces_right) > 0 or len(profile_faces_left_adjusted) > 0:
             # Profile detected - away from screen (EXACT from main.py)
             frame_score = 10.0  # Very low score
@@ -227,6 +270,15 @@ class FocusMonitor:
             status_text = "NO FACE DETECTED"
             new_state = "away"
             alerts.append("no_face")
+        
+        if device_detected:
+            frame_score = max(frame_score - 35.0, 0.0)
+            status_text = "⚠ DEVICE DETECTED"
+            new_state = "away"
+            if "device_detected" not in alerts:
+                alerts.append("device_detected")
+        
+        frame_score = max(0.0, min(100.0, frame_score))
         
         # Update away timer (EXACT logic from main.py)
         current_time = time.time()

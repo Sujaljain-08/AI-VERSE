@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS public.exams (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   description TEXT,
+  questions JSON DEFAULT '[]'::json,
   duration_minutes INTEGER NOT NULL,
   start_time TIMESTAMP WITH TIME ZONE NOT NULL,
   end_time TIMESTAMP WITH TIME ZONE NOT NULL,

@@ -152,6 +152,70 @@ class SimpleFocusMonitor:
         actual_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         
         self.logger.info(f"Camera opened: {actual_width}x{actual_height}")
+
+    def _detect_handheld_devices(self, gray_frame: np.ndarray, color_frame: np.ndarray) -> bool:
+        """Detect handheld electronic devices (phones/tablets) even when tilted."""
+        lower_start = gray_frame.shape[0] // 2
+        lower_gray = gray_frame[lower_start:, :]
+
+        blurred = cv2.GaussianBlur(lower_gray, (7, 7), 0)
+        edges = cv2.Canny(blurred, 40, 120)
+        kernel = np.ones((3, 3), np.uint8)
+        edges = cv2.dilate(edges, kernel, iterations=1)
+        edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel, iterations=2)
+
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        device_detected = False
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area < 900:
+                continue
+
+            rect = cv2.minAreaRect(contour)
+            (cx, cy), (w, h), angle = rect
+
+            if w < 28 or h < 28:
+                continue
+
+            long_side = max(w, h)
+            short_side = min(w, h)
+            if short_side == 0:
+                continue
+
+            aspect_ratio = long_side / short_side
+            if aspect_ratio > 5.0:
+                continue
+
+            rect_area = w * h
+            if rect_area <= 0:
+                continue
+
+            solidity = area / rect_area
+            if solidity < 0.55:
+                continue
+
+            box = cv2.boxPoints(rect)
+            box = np.int32(box)
+            box[:, 1] += lower_start
+
+            cv2.polylines(color_frame, [box], True, (0, 0, 255), 2)
+            top_idx = np.argmin(box[:, 1])
+            label_x = int(box[top_idx][0])
+            label_y = max(20, int(box[top_idx][1]) - 10)
+            cv2.putText(
+                color_frame,
+                "DEVICE",
+                (label_x, label_y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                (0, 0, 255),
+                2
+            )
+
+            device_detected = True
+
+        return device_detected
     
     def _initialize_audio(self):
         """Initialize pygame for audio alerts."""
@@ -211,6 +275,8 @@ class SimpleFocusMonitor:
         """Process a single frame with score-based detection."""
         # Convert to grayscale for face detection
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        device_detected = self._detect_handheld_devices(gray, frame)
         
         # Detect frontal faces
         faces = self.face_cascade.detectMultiScale(
@@ -273,47 +339,6 @@ class SimpleFocusMonitor:
                 minSize=(10, 10)   # Smaller minimum size
             )
             
-            # Check for devices (phones/tablets) in hands
-            device_detected = False
-            lower_frame = gray[frame.shape[0]//2:, :]  # Bottom half of frame
-            # Look for rectangular objects (potential phones/tablets)
-            edges = cv2.Canny(lower_frame, 50, 150)
-            contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            
-            for contour in contours:
-                area = cv2.contourArea(contour)
-                if area > 1000:  # Significant object
-                    x_c, y_c, w_c, h_c = cv2.boundingRect(contour)
-                    aspect_ratio = float(w_c) / h_c if h_c > 0 else 0
-                    # Phone-like aspect ratio (portrait or landscape)
-                    if (0.4 < aspect_ratio < 0.7) or (1.4 < aspect_ratio < 2.5):
-                        device_detected = True
-                        # Draw device detection
-                        cv2.rectangle(frame, (x_c, y_c + frame.shape[0]//2), 
-                                    (x_c+w_c, y_c+h_c + frame.shape[0]//2), (0, 0, 255), 2)
-                        cv2.putText(frame, "DEVICE!", (x_c, y_c + frame.shape[0]//2 - 10),
-                                  cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                        break
-                lower_frame = gray[frame.shape[0]//2:, :]  # Bottom half of frame
-                # Look for rectangular objects (potential phones/tablets)
-                edges = cv2.Canny(lower_frame, 50, 150)
-                contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                
-                for contour in contours:
-                    area = cv2.contourArea(contour)
-                    if area > 1000:  # Significant object
-                        x_c, y_c, w_c, h_c = cv2.boundingRect(contour)
-                        aspect_ratio = float(w_c) / h_c if h_c > 0 else 0
-                        # Phone-like aspect ratio (portrait or landscape)
-                        if (0.4 < aspect_ratio < 0.7) or (1.4 < aspect_ratio < 2.5):
-                            device_detected = True
-                            # Draw device detection
-                            cv2.rectangle(frame, (x_c, y_c + frame.shape[0]//2), 
-                                        (x_c+w_c, y_c+h_c + frame.shape[0]//2), (0, 0, 255), 2)
-                            cv2.putText(frame, "DEVICE!", (x_c, y_c + frame.shape[0]//2 - 10),
-                                      cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                            break
-                # Score based on eye detection
             if len(eyes) >= 2:
                 frame_score += 30.0  # Both eyes visible = +30
                 status_text = "Both Eyes Visible"
@@ -346,12 +371,6 @@ class SimpleFocusMonitor:
                 # No eyes detected - possibly looking away
                 frame_score += 10.0  # Small bonus for frontal face
                 status_text = "Eyes Not Detected"
-            
-            # Penalty for device detected
-            if device_detected:
-                frame_score -= 30.0  # Major penalty
-                status_text = "⚠ DEVICE IN HAND!"
-            
             # Score based on face size (distance from camera)
             face_area = w * h
             frame_area = frame.shape[0] * frame.shape[1]
@@ -389,10 +408,6 @@ class SimpleFocusMonitor:
                 frame_score -= 15.0
                 if "LOOKING" not in status_text:
                     status_text += " (Too Far)"
-            
-            # Cap score at 100 (but can't go below 0)
-            frame_score = max(0.0, min(100.0, frame_score))
-            
             # Determine color and state based on score (ONLY if not already set to away)
             if new_state != "away":
                 if frame_score >= 85:
@@ -468,6 +483,16 @@ class SimpleFocusMonitor:
                 new_state = self.current_state  # Keep previous state
                 color = (0, 165, 255)  # Orange - checking
                 status_text = "Checking..."
+        
+        if device_detected:
+            frame_score = max(frame_score - 35.0, 0.0)
+            status_text = "⚠ DEVICE DETECTED"
+            color = (0, 0, 255)
+            new_state = "away"
+            if "device_detected" not in alerts:
+                alerts.append("device_detected")
+        
+        frame_score = max(0.0, min(100.0, frame_score))
         
         # Update score history
         self.score_history.append(frame_score)

@@ -25,7 +25,7 @@ call venv\Scripts\activate.bat
 REM Install requirements
 echo.
 echo Installing dependencies...
-pip install -r requirements-api.txt
+pip install -r requirements.txt
 
 REM Start API server
 echo.

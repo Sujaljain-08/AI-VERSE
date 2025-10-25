@@ -30,7 +30,10 @@ export default function ExamPage() {
   const [currentScore, setCurrentScore] = useState(100);
   const [status, setStatus] = useState('Ready to start');
   const [alerts, setAlerts] = useState<string[]>([]);
+  const [questions, setQuestions] = useState<string[]>([]);
   const [manualAlerts, setManualAlerts] = useState<string[]>([]);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [questionPaneWidth, setQuestionPaneWidth] = useState(0.65);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -50,11 +53,38 @@ export default function ExamPage() {
   const manualAlertsRef = useRef<string[]>([]);
   const remoteAlertsRef = useRef<string[]>([]);
   const TAB_INACTIVE_ALERT = 'tab_inactive';
+  const layoutRef = useRef<HTMLDivElement | null>(null);
+  const isResizingRef = useRef(false);
 
   useEffect(() => {
     manualAlertsRef.current = manualAlerts;
     setAlerts(Array.from(new Set([...remoteAlertsRef.current, ...manualAlerts])));
   }, [manualAlerts]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const updateMatch = (target: MediaQueryList | MediaQueryListEvent) => {
+      setIsDesktop(target.matches);
+    };
+    updateMatch(mediaQuery);
+    const listener = (event: MediaQueryListEvent) => updateMatch(event);
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', listener);
+    } else {
+      // Fallback for Safari
+      // @ts-ignore
+      mediaQuery.addListener(listener);
+    }
+    return () => {
+      if (typeof mediaQuery.removeEventListener === 'function') {
+        mediaQuery.removeEventListener('change', listener);
+      } else {
+        // @ts-ignore
+        mediaQuery.removeListener(listener);
+      }
+    };
+  }, []);
 
   // Fetch exam details and start session
   useEffect(() => {
@@ -71,7 +101,7 @@ export default function ExamPage() {
         // Fetch exam details
         const { data: exam } = await supabase
           .from('exams')
-          .select('title')
+          .select('title, questions')
           .eq('id', examId)
           .single();
 
@@ -82,6 +112,26 @@ export default function ExamPage() {
         }
 
         setExamTitle(exam.title);
+        if (exam.questions) {
+          if (Array.isArray(exam.questions)) {
+            setQuestions(exam.questions.filter((item: unknown) => typeof item === 'string') as string[]);
+          } else if (typeof exam.questions === 'string') {
+            try {
+              const parsed = JSON.parse(exam.questions);
+              if (Array.isArray(parsed)) {
+                setQuestions(parsed.filter((item: unknown) => typeof item === 'string') as string[]);
+              } else {
+                setQuestions([]);
+              }
+            } catch {
+              setQuestions([]);
+            }
+          } else {
+            setQuestions([]);
+          }
+        } else {
+          setQuestions([]);
+        }
 
         // Start exam session
         const response = await fetch('/api/exam/start', {
@@ -362,6 +412,47 @@ export default function ExamPage() {
     };
   }, [isStarted]);
 
+  const startResize = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDesktop) return;
+    event.preventDefault();
+    isResizingRef.current = true;
+    document.body.style.userSelect = 'none';
+  }, [isDesktop]);
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isResizingRef.current || !layoutRef.current) return;
+      const rect = layoutRef.current.getBoundingClientRect();
+      const relativeX = (event.clientX - rect.left) / rect.width;
+      const clamped = Math.max(0.45, Math.min(0.85, relativeX));
+      setQuestionPaneWidth(clamped);
+    };
+
+    const stopResize = () => {
+      if (!isResizingRef.current) return;
+      isResizingRef.current = false;
+      document.body.style.removeProperty('user-select');
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', stopResize);
+    window.addEventListener('mouseleave', stopResize);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', stopResize);
+      window.removeEventListener('mouseleave', stopResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isDesktop && isResizingRef.current) {
+      isResizingRef.current = false;
+      document.body.style.removeProperty('user-select');
+    }
+  }, [isDesktop]);
+
+
   // Batch save scores every 3 seconds
   useEffect(() => {
     if (!isStarted) return;
@@ -371,7 +462,7 @@ export default function ExamPage() {
 
       // Take every 10th score to reduce DB writes
       const scores = scoreBufferRef.current.filter((score, i) => {
-        if (score.alerts?.includes(TAB_INACTIVE_ALERT)) {
+        if (Array.isArray(score.alerts) && score.alerts.length > 0) {
           return true;
         }
         return i % 10 === 0;
@@ -444,23 +535,75 @@ export default function ExamPage() {
         peerRef.current.close();
       }
       tabInactiveRef.current = false;
+      document.body.style.removeProperty('user-select');
     };
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">{examTitle}</h1>
-          <p className="text-gray-600">Session ID: {sessionId || 'Loading...'}</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+      <div className="max-w-6xl mx-auto flex flex-col gap-6 h-full px-4 lg:px-0">
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">{examTitle}</h1>
+              <p className="text-gray-600 text-sm mt-1">Session ID: {sessionId || 'Loading...'}</p>
+            </div>
+            <div className="text-sm text-indigo-600 font-semibold">
+              {isStarted ? 'Monitoring in progress' : 'Waiting to start'}
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Video Feed */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Your Webcam</h2>
+        <div className="flex flex-col lg:flex-row gap-6 flex-1" ref={layoutRef}>
+          <div
+            className="relative flex flex-col"
+            style={isDesktop ? { flexBasis: `${(questionPaneWidth * 100).toFixed(2)}%`, maxWidth: `${(questionPaneWidth * 100).toFixed(2)}%` } : undefined}
+          >
+            <div className="bg-white rounded-lg shadow-lg p-6 flex-1">
+              <h2 className="text-xl font-semibold text-gray-800">Exam Questions</h2>
+              <p className="text-sm text-gray-500 mt-2">Review these before you begin.</p>
+              <div className="mt-4 space-y-3 text-sm text-gray-700">
+                {questions.length === 0 ? (
+                  <div className="rounded-md bg-gray-100 px-4 py-3 text-gray-500">
+                    Questions will appear here once added by your instructor.
+                  </div>
+                ) : (
+                  questions.map((question, index) => (
+                    <div
+                      key={index}
+                      className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 shadow-sm"
+                    >
+                      <span className="block text-xs font-semibold text-indigo-600 mb-2">
+                        Question {index + 1}
+                      </span>
+                      <p className="leading-relaxed">{question}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            <div
+              className="hidden lg:flex absolute top-0 right-0 h-full w-2 cursor-col-resize items-center justify-center group"
+              onMouseDown={startResize}
+              role="presentation"
+            >
+              <span className="h-12 w-1 rounded-full bg-indigo-200 transition-colors group-hover:bg-indigo-400" />
+            </div>
+          </div>
+
+          <div
+            className="lg:flex-1 flex flex-col gap-4"
+            style={isDesktop ? { flexBasis: `${((1 - questionPaneWidth) * 100).toFixed(2)}%` } : undefined}
+          >
+            <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-800">Your Webcam</h2>
+                {isStarted ? (
+                  <span className="text-green-500 text-sm font-semibold">Recording</span>
+                ) : (
+                  <span className="text-yellow-500 text-sm font-semibold">Ready</span>
+                )}
+              </div>
               <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
                 <video
                   ref={videoRef}
@@ -471,89 +614,114 @@ export default function ExamPage() {
                 />
                 {!isStarted && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="text-center text-white">
-                      <p className="mb-4">Camera will activate when you start</p>
+                    <div className="text-center text-white text-sm space-y-2">
+                      <p>Camera will activate when you start</p>
+                      <p className="opacity-75">Ensure your face is centered and well-lit</p>
                     </div>
                   </div>
                 )}
               </div>
               <canvas ref={canvasRef} className="hidden" />
             </div>
-          </div>
 
-          {/* Monitoring Panel */}
-          <div className="space-y-6">
-            {/* Focus Score */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold mb-4">Focus Score</h3>
-              <div className="text-center">
-                <div className={`text-5xl font-bold ${
-                  currentScore >= 85 ? 'text-green-500' :
-                  currentScore >= 70 ? 'text-yellow-500' :
-                  currentScore >= 50 ? 'text-orange-500' :
-                  'text-red-500'
-                }`}>
-                  {currentScore}%
-                </div>
-                <p className="text-sm text-gray-600 mt-2">{status}</p>
+            <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800">Exam Controls</h3>
+                <span className="text-sm text-gray-500">
+                  {isStarted ? 'Session active' : 'Session not started'}
+                </span>
               </div>
-              
-              {/* Score Bar */}
-              <div className="mt-4 bg-gray-200 rounded-full h-4 overflow-hidden">
+              <div className="flex gap-3">
+                {!isStarted ? (
+                  <button
+                    onClick={startExam}
+                    disabled={!sessionId}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                  >
+                    ▶️ Start Exam
+                  </button>
+                ) : (
+                  <button
+                    onClick={submitExam}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+                  >
+                    ✅ Submit Exam
+                  </button>
+                )}
+              </div>
+              <div className="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3 text-sm text-gray-600">
+                {status}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-800">Detection Results</h3>
+                <span
+                  className={`text-2xl font-bold ${
+                    currentScore >= 85
+                      ? 'text-green-500'
+                      : currentScore >= 70
+                      ? 'text-yellow-500'
+                      : currentScore >= 50
+                      ? 'text-orange-500'
+                      : 'text-red-500'
+                  }`}
+                >
+                  {currentScore}%
+                </span>
+              </div>
+              <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div
                   className={`h-full transition-all ${
-                    currentScore >= 85 ? 'bg-green-500' :
-                    currentScore >= 70 ? 'bg-yellow-500' :
-                    currentScore >= 50 ? 'bg-orange-500' :
-                    'bg-red-500'
+                    currentScore >= 85
+                      ? 'bg-green-500'
+                      : currentScore >= 70
+                      ? 'bg-yellow-500'
+                      : currentScore >= 50
+                      ? 'bg-orange-500'
+                      : 'bg-red-500'
                   }`}
                   style={{ width: `${currentScore}%` }}
                 />
               </div>
-            </div>
-
-            {/* Alerts */}
-            {alerts.length > 0 && (
-              <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
-                <h3 className="text-red-800 font-semibold mb-2">⚠️ Alerts</h3>
-                <ul className="text-red-700 text-sm space-y-1">
-                  {alerts.map((alert, i) => (
-                    <li key={i}>• {alert.replace(/_/g, ' ').toUpperCase()}</li>
-                  ))}
-                </ul>
+              <div className="text-sm text-gray-600">
+                <p className="font-semibold text-gray-700">Current state:</p>
+                <p className="mt-1">{status}</p>
               </div>
-            )}
-
-            {/* Controls */}
-            <div className="space-y-3">
-              {!isStarted ? (
-                <button
-                  onClick={startExam}
-                  disabled={!sessionId}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
-                >
-                  ▶️ Start Exam
-                </button>
-              ) : (
-                <button
-                  onClick={submitExam}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition"
-                >
-                  ✅ Submit Exam
-                </button>
-              )}
+              <div>
+                <p className="text-sm font-semibold text-gray-700 mb-2">
+                  Live alerts
+                </p>
+                {alerts.length === 0 ? (
+                  <div className="rounded-md border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-500">
+                    No suspicious activity detected.
+                  </div>
+                ) : (
+                  <ul className="space-y-2 text-sm text-red-600">
+                    {alerts.map((alert, index) => (
+                      <li
+                        key={index}
+                        className="rounded-md border border-red-100 bg-red-50 px-4 py-2"
+                      >
+                        {alert.replace(/_/g, ' ').toUpperCase()}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </div>
+          </div>
+        </div>
 
-            {/* Instructions */}
-            <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
-              <h4 className="font-semibold mb-2">📋 Instructions:</h4>
-              <ul className="space-y-1">
-                <li>• Keep looking at the screen</li>
-                <li>• Stay in camera frame</li>
-                <li>• Do not look away for long</li>
-                <li>• Admin can view you live</li>
-              </ul>
-            </div>
+        <div className="bg-blue-50 rounded-lg border border-blue-100 px-6 py-5 text-sm text-blue-900">
+          <h4 className="font-semibold mb-2">📋 Final Checklist</h4>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-blue-900">
+            <span>• Keep looking at the screen</span>
+            <span>• Stay fully within the camera frame</span>
+            <span>• Avoid looking away or leaving the tab</span>
+            <span>• Keep phones and tablets out of view</span>
+            <span>• Admin can view you live at any time</span>
           </div>
         </div>
       </div>
