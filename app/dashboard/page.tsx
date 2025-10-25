@@ -226,7 +226,10 @@ export default function DashboardPage() {
                     
                     <div className="ml-6">
                       {isExamActive(exam) ? (
-                        <button className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                        <button 
+                          onClick={() => router.push(`/exam/${exam.id}`)}
+                          className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                        >
                           Start Exam
                         </button>
                       ) : isExamUpcoming(exam) ? (
