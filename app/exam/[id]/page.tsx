@@ -572,10 +572,11 @@ export default function ExamPage() {
         console.log('[Fullscreen] Student exited fullscreen - showing prompt');
         setShowFullscreenPrompt(true);
         setStatus('⚠️ Please return to fullscreen');
-      } else if (!isFullscreenRef.current && isCurrentlyFullscreen) {
-        // Entered fullscreen
+      } else if (isCurrentlyFullscreen) {
+        // Entered or re-entered fullscreen
         isFullscreenRef.current = true;
         setShowFullscreenPrompt(false);
+        setStatus('Monitoring your exam...');
         console.log('[Fullscreen] Entered fullscreen mode');
       }
     };

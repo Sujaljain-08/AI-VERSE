@@ -66,13 +66,32 @@ export default function DashboardPage() {
   }
 
   const fetchExams = async () => {
+    if (!user) return
+    
     const now = new Date().toISOString()
     
-    const { data } = await supabase
+    // First, get completed exam IDs for this user
+    const { data: completedSessions } = await supabase
+      .from('exam_sessions')
+      .select('exam_id')
+      .eq('student_id', user.id)
+      .not('submitted_at', 'is', null)
+    
+    const completedExamIds = completedSessions?.map(s => s.exam_id) || []
+    
+    // Fetch exams that are not yet completed by this user
+    let query = supabase
       .from('exams')
       .select('*')
       .gte('end_time', now)
       .order('start_time', { ascending: true })
+    
+    // Filter out completed exams if there are any
+    if (completedExamIds.length > 0) {
+      query = query.not('id', 'in', `(${completedExamIds.join(',')})`)
+    }
+    
+    const { data } = await query
     
     setExams(data || [])
   }
