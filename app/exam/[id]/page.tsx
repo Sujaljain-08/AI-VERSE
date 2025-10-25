@@ -472,8 +472,7 @@ export default function ExamPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            session_id: sessionId,
-            student_id: userId,
+            sessionId: sessionId,
             scores,
           }),
         });
