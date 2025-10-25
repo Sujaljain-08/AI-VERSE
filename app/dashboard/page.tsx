@@ -98,27 +98,27 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#19191C]' : 'bg-white'}`}> 
+      <div className={`min-h-screen flex items-center justify-center bg-[#19191C]`}> 
         <div className={isDark ? 'text-white/60' : 'text-gray-600'}>Loading...</div>
       </div>
     )
   }
 
   return (
-  <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#19191C]' : 'bg-white'}`}> 
+  <div className={`min-h-screen transition-colors duration-300 bg-[#19191C]`}> 
       {/* Navigation */}
-      <nav className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} backdrop-blur-md shadow-sm border-b`}>
+      <nav className={`bg-white/5 border-white/10 backdrop-blur-md shadow-sm border-b`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-4">
-              <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Student Dashboard</h1>
+              <h1 className={`text-xl font-bold text-white`}>Student Dashboard</h1>
               <span className="px-3 py-1 bg-gradient-to-r from-[#FD366E]/20 to-[#FF6B9D]/20 text-[#FD366E] text-xs font-semibold rounded-full border border-[#FD366E]/30">STUDENT</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-700'}`}>{user?.user_metadata?.full_name || user?.email}</span>
+              <span className={`text-sm text-white/70`}>{user?.user_metadata?.full_name || user?.email}</span>
               <button
                 onClick={toggleTheme}
-                className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'}`}
+                className={`p-2 rounded-lg transition-colors bg-white/10 hover:bg-white/20`}
                 aria-label="Toggle theme"
               >
                 {isDark ? (
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                   </svg>
                 )}
               </button>
-              <button onClick={handleSignOut} className={`text-sm font-medium ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-500'}`}>Sign out</button>
+              <button onClick={handleSignOut} className={`text-sm font-medium text-red-400 hover:text-red-300`}>Sign out</button>
             </div>
           </div>
         </div>
@@ -140,7 +140,7 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Welcome, {user?.user_metadata?.full_name || 'Student'}!</h2>
+          <h2 className={`text-3xl font-bold mb-2 text-white`}>Welcome, {user?.user_metadata?.full_name || 'Student'}!</h2>
           <p className={isDark ? 'text-white/60' : 'text-gray-600'}>View and take your scheduled exams</p>
         </div>
 
@@ -166,23 +166,23 @@ export default function DashboardPage() {
         {activeTab === 'available' && (
           <div className="space-y-4">
             {exams.length === 0 ? (
-              <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} border rounded-lg shadow p-12 text-center backdrop-blur-sm`}>
-                <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-white/40' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className={`bg-white/5 border-white/10 border rounded-lg shadow p-12 text-center backdrop-blur-sm`}>
+                <svg className={`w-16 h-16 mx-auto mb-4 text-white/40`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No Available Exams</h3>
+                <h3 className={`text-lg font-medium mb-2 text-white`}>No Available Exams</h3>
                 <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Check back later for scheduled exams</p>
               </div>
             ) : (
               exams.map((exam) => (
                 <div
                   key={exam.id}
-                  className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} border rounded-lg shadow hover:shadow-lg hover:border-[#FD366E]/30 transition-all p-6 backdrop-blur-sm`}
+                  className={`bg-white/5 border-white/10 border rounded-lg shadow hover:shadow-lg hover:border-[#FD366E]/30 transition-all p-6 backdrop-blur-sm`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{exam.title}</h3>
+                        <h3 className={`text-xl font-bold text-white`}>{exam.title}</h3>
                         {isExamActive(exam) && (
                           <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full flex items-center gap-1 border border-green-500/30"> 
                             <span className="relative flex h-2 w-2">
@@ -202,11 +202,11 @@ export default function DashboardPage() {
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <div>
                           <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Start Time</p>
-                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{formatDate(exam.start_time)}</p>
+                          <p className={`text-sm font-medium text-white`}>{formatDate(exam.start_time)}</p>
                         </div>
                         <div>
                           <p className={isDark ? 'text-sm text-white/60' : 'text-sm text-gray-600'}>Duration</p>
-                          <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{exam.duration_minutes} minutes</p>
+                          <p className={`text-sm font-medium text-white`}>{exam.duration_minutes} minutes</p>
                         </div>
                       </div>
                     </div>
@@ -219,9 +219,9 @@ export default function DashboardPage() {
                           Start Exam
                         </button>
                       ) : isExamUpcoming(exam) ? (
-                        <button disabled className={`${isDark ? 'bg-white/5 text-white/40 border-white/10' : 'bg-gray-100 text-gray-400 border-gray-200'} px-6 py-3 rounded-lg cursor-not-allowed font-medium border`}>Not Started</button>
+                        <button disabled className={`bg-white/5 text-white/40 border-white/10 px-6 py-3 rounded-lg cursor-not-allowed font-medium border`}>Not Started</button>
                       ) : (
-                        <button disabled className={`${isDark ? 'bg-white/5 text-white/40 border-white/10' : 'bg-gray-100 text-gray-400 border-gray-200'} px-6 py-3 rounded-lg cursor-not-allowed font-medium border`}>Ended</button>
+                        <button disabled className={`bg-white/5 text-white/40 border-white/10 px-6 py-3 rounded-lg cursor-not-allowed font-medium border`}>Ended</button>
                       )}
                     </div>
                   </div>
@@ -232,11 +232,11 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'completed' && (
-          <div className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} border rounded-lg shadow p-12 text-center backdrop-blur-sm`}>
-            <svg className={`w-16 h-16 mx-auto mb-4 ${isDark ? 'text-white/40' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className={`bg-white/5 border-white/10 border rounded-lg shadow p-12 text-center backdrop-blur-sm`}>
+            <svg className={`w-16 h-16 mx-auto mb-4 text-white/40`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className={`text-lg font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>No Completed Exams</h3>
+            <h3 className={`text-lg font-medium mb-2 text-white`}>No Completed Exams</h3>
             <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Your completed exams will appear here</p>
           </div>
         )}

@@ -21,18 +21,6 @@ export default function ExamPage() {
   const router = useRouter();
   const examId = params.id as string;
   
-  const [isDark, setIsDark] = useState(true);
-  useEffect(() => {
-    const theme = localStorage.getItem('theme');
-    setIsDark(theme !== 'light');
-  }, []);
-  const toggleTheme = () => {
-    setIsDark((prev) => {
-      localStorage.setItem('theme', prev ? 'light' : 'dark');
-      return !prev;
-    });
-  };
-  
   const [examTitle, setExamTitle] = useState('Loading...');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -68,12 +56,6 @@ export default function ExamPage() {
   const layoutRef = useRef<HTMLDivElement | null>(null);
   const isResizingRef = useRef(false);
   
-  // Stricter tab inactivity tracking
-  const lastActivityTimeRef = useRef<number>(0);
-  const tabInactiveCountRef = useRef<number>(0);
-  const TAB_INACTIVITY_THRESHOLD = 500; // 0.5 seconds without activity = flag (STRICTER)
-  const TAB_INACTIVITY_TOLERANCE = 1500; // 1.5 seconds total before penalty (STRICTER)
-
   // Tab restriction & fullscreen enforcement
   const isFullscreenRef = useRef(false);
   const TAB_SWITCH_ALERT = 'tab_switched_away';
@@ -314,9 +296,6 @@ export default function ExamPage() {
     if (!sessionId || !userId) return;
 
     try {
-      tabInactiveRef.current = false;
-      tabInactiveCountRef.current = 0;
-      lastActivityTimeRef.current = Date.now(); // Initialize activity timer
       setManualAlerts([]);
       remoteAlertsRef.current = [];
       setAlerts([]);
@@ -516,79 +495,17 @@ export default function ExamPage() {
     }
 
     // Track user activity (keyboard, mouse, focus)
-    const updateActivity = () => {
-      lastActivityTimeRef.current = Date.now();
-      if (tabInactiveRef.current && tabInactiveCountRef.current < 1) {
-        // Only allow one recovery - stricter enforcement
-        tabInactiveRef.current = false;
-        setManualAlerts((prev) => prev.filter((alert) => alert !== TAB_INACTIVE_ALERT));
-        console.log('[Activity] Recovered from inactivity (final warning)');
-      }
-    };
-
-    const flagTabInactive = (reason: string) => {
-      if (!isStarted || tabInactiveRef.current) {
-        return;
-      }
-      tabInactiveRef.current = true;
-      tabInactiveCountRef.current++;
-      setStatus(`Exam tab inactive (${reason})`);
-      setManualAlerts((prev) => (prev.includes(TAB_INACTIVE_ALERT) ? prev : [...prev, TAB_INACTIVE_ALERT]));
-      console.log(`[Tab Inactive] Flagged: ${reason} (Count: ${tabInactiveCountRef.current})`);
-      scoreBufferRef.current.push({
-        success: true,
-        focus_score: 0,
-        raw_frame_score: 0,
-        status: `Exam tab inactive - ${reason}`,
-        state: 'tab_inactive',
-        away_timer: 0,
-        alerts: [TAB_INACTIVE_ALERT],
-        timestamp: Date.now(),
-      });
-    };
-
-    const clearTabInactiveFlag = () => {
-      if (!tabInactiveRef.current) {
-        return;
-      }
-      tabInactiveRef.current = false;
-      setManualAlerts((prev) => prev.filter((alert) => alert !== TAB_INACTIVE_ALERT));
-      console.log('[Tab Inactive] Cleared');
-    };
-
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        flagTabInactive('visibility_hidden');
         // Add tab switch alert - student switched to another tab
         setManualAlerts((prev) => (prev.includes(TAB_SWITCH_ALERT) ? prev : [...prev, TAB_SWITCH_ALERT]));
         console.log('[Tab Switch] Student switched away from exam tab');
-      } else {
-        updateActivity();
-        clearTabInactiveFlag();
       }
     };
 
     const handleWindowBlur = () => {
-      flagTabInactive('window_blur');
       // Also flag as tab switch for extra severity
       setManualAlerts((prev) => (prev.includes(TAB_SWITCH_ALERT) ? prev : [...prev, TAB_SWITCH_ALERT]));
-    };
-
-    const handleWindowFocus = () => {
-      updateActivity();
-      clearTabInactiveFlag();
-    };
-
-    const handleKeyDown = () => {
-      updateActivity();
-    };
-
-    const handleMouseMove = () => {
-      updateActivity();
-    };
-
-    const handleMouseDown = () => {
-      updateActivity();
     };
 
     // Block keyboard shortcuts that could open new tabs or navigate away
@@ -638,27 +555,8 @@ export default function ExamPage() {
       }
     };
 
-    // Inactivity monitoring - check if user hasn't interacted in threshold
-    const inactivityInterval = setInterval(() => {
-      if (!isStartedRef.current) return;
-      const timeSinceActivity = Date.now() - lastActivityTimeRef.current;
-      
-      if (timeSinceActivity > TAB_INACTIVITY_THRESHOLD) {
-        if (!tabInactiveRef.current) {
-          flagTabInactive('no_interaction');
-        }
-      } else if (timeSinceActivity < 300 && tabInactiveRef.current && tabInactiveCountRef.current < 1) {
-        // Very tight grace period for recovery (only one chance)
-        clearTabInactiveFlag();
-      }
-    }, 200); // Check more frequently for stricter enforcement
-
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleWindowBlur);
-    window.addEventListener('focus', handleWindowFocus);
-    document.addEventListener('keydown', handleKeyDown, true); // Capture phase for better detection
-    document.addEventListener('mousemove', handleMouseMove, true);
-    document.addEventListener('mousedown', handleMouseDown, true);
     document.addEventListener('keydown', handleKeyDownShortcuts, true); // Block dangerous shortcuts
 
     // Fullscreen change detection
@@ -686,13 +584,8 @@ export default function ExamPage() {
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
 
     return () => {
-      clearInterval(inactivityInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
-      window.removeEventListener('focus', handleWindowFocus);
-      document.removeEventListener('keydown', handleKeyDown, true);
-      document.removeEventListener('mousemove', handleMouseMove, true);
-      document.removeEventListener('mousedown', handleMouseDown, true);
       document.removeEventListener('keydown', handleKeyDownShortcuts, true);
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
@@ -829,28 +722,12 @@ export default function ExamPage() {
   }, []);
 
   return (
-    <div className={`min-h-screen py-8 transition-colors duration-300 ${isDark ? 'bg-[#19191C]' : 'bg-white'}`}>
-      <button
-        onClick={toggleTheme}
-        className={`absolute top-6 right-6 p-2 rounded-lg transition-colors z-50 ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'}`}
-        aria-label="Toggle theme"
-      >
-        {isDark ? (
-          <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" />
-          </svg>
-        ) : (
-          <svg className="w-5 h-5 text-gray-700" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-          </svg>
-        )}
-      </button>
-
+    <div className="min-h-screen py-8 bg-[#19191C]">
       <div className="relative z-10 max-w-6xl mx-auto flex flex-col gap-6 h-full px-4 lg:px-0">
-        <div className={`rounded-lg shadow-md p-6 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+        <div className="rounded-lg shadow-md p-6 bg-white/5 border border-white/10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{examTitle}</h1>
+              <h1 className="text-3xl font-bold text-white">{examTitle}</h1>
             </div>
             <div className="flex items-center gap-2">
               {isStarted ? (
@@ -859,10 +736,10 @@ export default function ExamPage() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FD366E] opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FD366E]"></span>
                   </span>
-                  <span className={`text-sm font-semibold ${isDark ? 'text-[#FD366E]' : 'text-pink-600'}`}>Monitoring Active</span>
+                  <span className="text-sm font-semibold text-[#FD366E]">Monitoring Active</span>
                 </>
               ) : (
-                <span className={`text-sm font-semibold ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Ready to Start</span>
+                <span className="text-sm font-semibold text-white/60">Ready to Start</span>
               )}
             </div>
           </div>
@@ -873,7 +750,7 @@ export default function ExamPage() {
             className="relative flex flex-col"
             style={isDesktop ? { flexBasis: `${(questionPaneWidth * 100).toFixed(2)}%`, maxWidth: `${(questionPaneWidth * 100).toFixed(2)}%` } : undefined}
           >
-            <div className={`rounded-lg shadow-md p-6 flex-1 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+            <div className="rounded-lg shadow-md p-6 flex-1 bg-white/5 border border-white/10">
               {!isStarted ? (
                 // Show instructions before exam starts
                 <>
@@ -883,20 +760,20 @@ export default function ExamPage() {
                         <span className="text-white text-2xl">📋</span>
                       </div>
                       <div>
-                        <h2 className={`text-3xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Exam Instructions</h2>
-                        <p className={`text-sm mt-1 ${isDark ? 'text-white/50' : 'text-gray-600'}`}>Please read carefully before starting</p>
+                        <h2 className="text-3xl font-bold text-white">Exam Instructions</h2>
+                        <p className="text-sm mt-1 text-white/50">Please read carefully before starting</p>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     {/* Important Guidelines */}
-                    <div className={`rounded-lg border-l-4 border-red-500 p-6 backdrop-blur-sm ${isDark ? 'bg-red-500/10' : 'bg-red-50'}`}>
-                      <h3 className={`font-bold mb-4 flex items-center gap-2 text-lg ${isDark ? 'text-red-400' : 'text-red-600'}`}>
+                    <div className="rounded-lg border-l-4 border-red-500 p-6 backdrop-blur-sm bg-red-500/10">
+                      <h3 className="font-bold mb-4 flex items-center gap-2 text-lg text-red-400">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/></svg>
                         Important Guidelines
                       </h3>
-                      <ul className={`space-y-3 text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
+                      <ul className="space-y-3 text-sm text-white/80">
                         <li className="flex gap-3">
                           <svg className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
                           <span><strong>Camera Monitoring:</strong> Your webcam will be monitored throughout the exam</span>
@@ -921,12 +798,12 @@ export default function ExamPage() {
                     </div>
 
                     {/* Setup Checklist */}
-                    <div className={`rounded-lg border-l-4 border-green-500 p-6 backdrop-blur-sm ${isDark ? 'bg-green-500/10' : 'bg-green-50'}`}>
-                      <h3 className={`font-bold mb-4 flex items-center gap-2 text-lg ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                    <div className="rounded-lg border-l-4 border-green-500 p-6 backdrop-blur-sm bg-green-500/10">
+                      <h3 className="font-bold mb-4 flex items-center gap-2 text-lg text-green-400">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.707 2.293a1 1 0 00-1.414 1.414l9 9a1 1 0 001.414-1.414l-9-9zM4 10a2 2 0 11-4 0 2 2 0 014 0zm12 0a2 2 0 11-4 0 2 2 0 014 0z" clipRule="evenodd"/></svg>
                         Setup Checklist
                       </h3>
-                      <ul className={`space-y-2.5 text-sm ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
+                      <ul className="space-y-2.5 text-sm text-white/80">
                         <li className="flex gap-3">
                           <svg className="w-5 h-5 flex-shrink-0 text-green-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
                           <span>Environment is well-lit</span>
@@ -947,27 +824,27 @@ export default function ExamPage() {
                     </div>
 
                     {/* Exam Info Card */}
-                    <div className={`rounded-lg border p-6 backdrop-blur-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}>
-                      <h3 className={`font-bold mb-4 text-lg ${isDark ? 'text-white' : 'text-gray-900'}`}>📝 Exam Details</h3>
+                    <div className="rounded-lg border p-6 backdrop-blur-sm bg-white/5 border-white/10">
+                      <h3 className="font-bold mb-4 text-lg text-white">📝 Exam Details</h3>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className={`text-xs uppercase font-semibold tracking-wide ${isDark ? 'text-white/50' : 'text-gray-600'}`}>Title</p>
-                          <p className={`text-lg font-semibold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{examTitle}</p>
+                          <p className="text-xs uppercase font-semibold tracking-wide text-white/50">Title</p>
+                          <p className="text-lg font-semibold mt-1 text-white">{examTitle}</p>
                         </div>
                         <div>
-                          <p className={`text-xs uppercase font-semibold tracking-wide ${isDark ? 'text-white/50' : 'text-gray-600'}`}>Questions</p>
-                          <p className={`text-lg font-semibold mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{questions.length > 0 ? questions.length : 'Loading...'}</p>
+                          <p className="text-xs uppercase font-semibold tracking-wide text-white/50">Questions</p>
+                          <p className="text-lg font-semibold mt-1 text-white">{questions.length > 0 ? questions.length : 'Loading...'}</p>
                         </div>
                       </div>
-                      <div className="mt-4 pt-4 border-t" style={{ borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}>
-                        <p className={`text-xs uppercase font-semibold tracking-wide ${isDark ? 'text-white/50' : 'text-gray-600'}`}>Session ID</p>
-                        <p className={`text-sm font-mono mt-1 break-all ${isDark ? 'text-white/70' : 'text-gray-700'}`}>{sessionId || 'Loading...'}</p>
+                      <div className="mt-4 pt-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                        <p className="text-xs uppercase font-semibold tracking-wide text-white/50">Session ID</p>
+                        <p className="text-sm font-mono mt-1 break-all text-white/70">{sessionId || 'Loading...'}</p>
                       </div>
                     </div>
 
                     {/* Warning Banner */}
-                    <div className={`rounded-lg border-l-4 border-[#FD366E] p-6 backdrop-blur-sm ${isDark ? 'bg-[#FD366E]/10' : 'bg-pink-50'}`}>
-                      <p className={`text-sm leading-relaxed ${isDark ? 'text-white/90' : 'text-gray-800'}`}>
+                    <div className="rounded-lg border-l-4 border-[#FD366E] p-6 backdrop-blur-sm bg-[#FD366E]/10">
+                      <p className="text-sm leading-relaxed text-white/90">
                         <strong>⚠️ Ready to start?</strong> Once you click &quot;Start Exam&quot;, monitoring begins immediately. Make sure you have completed all the setup checks above. You cannot pause the exam once started.
                       </p>
                     </div>
@@ -1074,10 +951,10 @@ export default function ExamPage() {
               <canvas ref={canvasRef} className="hidden" />
             </div>
 
-            <div className={`rounded-lg shadow-md p-6 flex flex-col gap-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+            <div className="rounded-lg shadow-md p-6 flex flex-col gap-4 bg-white/5 border border-white/10">
               <div className="flex items-center justify-between">
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Exam Controls</h3>
-                <span className={`text-sm ${isDark ? 'text-white/60' : 'text-gray-600'}`}>
+                <h3 className="text-lg font-semibold text-white">Exam Controls</h3>
+                <span className="text-sm text-white/60">
                   {isStarted ? 'Session active' : 'Session not started'}
                 </span>
               </div>
@@ -1099,14 +976,14 @@ export default function ExamPage() {
                   </button>
                 )}
               </div>
-              <div className={`rounded-lg px-4 py-3 text-sm ${isDark ? 'bg-white/5 border border-white/10 text-white/70' : 'bg-gray-100 border border-gray-300 text-gray-700'}`}>
+              <div className="rounded-lg px-4 py-3 text-sm bg-white/5 border border-white/10 text-white/70">
                 {status}
               </div>
             </div>
 
-            <div className={`rounded-lg shadow-md p-6 flex flex-col gap-4 ${isDark ? 'bg-white/5 border border-white/10' : 'bg-gray-50 border border-gray-200'}`}>
+            <div className="rounded-lg shadow-md p-6 flex flex-col gap-4 bg-white/5 border border-white/10">
               <div className="flex items-center justify-between">
-                <h3 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Detection Results</h3>
+                <h3 className="text-lg font-semibold text-white">Detection Results</h3>
                 <span
                   className={`text-2xl font-bold ${
                     currentScore >= 85
@@ -1121,7 +998,7 @@ export default function ExamPage() {
                   {currentScore}%
                 </span>
               </div>
-              <div className={`rounded-full h-3 overflow-hidden ${isDark ? 'bg-white/10' : 'bg-gray-300'}`}>
+              <div className="rounded-full h-3 overflow-hidden bg-white/10">
                 <div
                   className={`h-full transition-all ${
                     currentScore >= 85
@@ -1135,16 +1012,16 @@ export default function ExamPage() {
                   style={{ width: `${currentScore}%` }}
                 />
               </div>
-              <div className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-700'}`}>
-                <p className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>Current state:</p>
+              <div className="text-sm text-white/70">
+                <p className="font-semibold mb-1 text-white">Current state:</p>
                 <p>{status}</p>
               </div>
               <div>
-                <p className={`text-sm font-semibold mb-2 flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                <p className="text-sm font-semibold mb-2 flex items-center gap-2 text-white">
                   <span>🚨</span> Live alerts
                 </p>
                 {alerts.length === 0 ? (
-                  <div className={`rounded-lg border px-4 py-3 text-sm text-center ${isDark ? 'border-white/10 bg-white/5 text-white/60' : 'border-gray-300 bg-gray-100 text-gray-600'}`}>
+                  <div className="rounded-lg border px-4 py-3 text-sm text-center border-white/10 bg-white/5 text-white/60">
                     No suspicious activity detected
                   </div>
                 ) : (

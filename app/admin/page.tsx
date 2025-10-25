@@ -92,27 +92,27 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-[#19191C]' : 'bg-white'}`}> 
+      <div className={`min-h-screen flex items-center justify-center bg-[#19191C]`}> 
         <div className={isDark ? 'text-white/60' : 'text-gray-600'}>Loading...</div>
       </div>
     )
   }
 
   return (
-  <div className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#19191C]' : 'bg-white'}`}> 
+  <div className={`min-h-screen transition-colors duration-300 bg-[#19191C]`}> 
       {/* Navigation */}
-      <nav className={`${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'} backdrop-blur-md shadow-sm border-b`}>
+      <nav className={`bg-white/5 border-white/10 backdrop-blur-md shadow-sm border-b`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-4">
-              <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Admin Dashboard</h1>
+              <h1 className={`text-xl font-bold text-white`}>Admin Dashboard</h1>
               <span className="px-3 py-1 bg-gradient-to-r from-[#FD366E]/20 to-[#FF6B9D]/20 text-[#FD366E] text-xs font-semibold rounded-full border border-[#FD366E]/30">ADMIN</span>
             </div>
             <div className="flex items-center gap-4">
-              <span className={`text-sm ${isDark ? 'text-white/70' : 'text-gray-700'}`}>{user?.user_metadata?.full_name || user?.email}</span>
+              <span className={`text-sm text-white/70`}>{user?.user_metadata?.full_name || user?.email}</span>
               <button
                 onClick={toggleTheme}
-                className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/10 hover:bg-white/20' : 'bg-gray-100 hover:bg-gray-200'}`}
+                className={`p-2 rounded-lg transition-colors bg-white/10 hover:bg-white/20`}
                 aria-label="Toggle theme"
               >
                 {isDark ? (
@@ -125,7 +125,7 @@ export default function AdminPage() {
                   </svg>
                 )}
               </button>
-              <button onClick={handleSignOut} className={`text-sm font-medium ${isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-500'}`}>Sign out</button>
+              <button onClick={handleSignOut} className={`text-sm font-medium text-red-400 hover:text-red-300`}>Sign out</button>
             </div>
           </div>
         </div>
@@ -134,17 +134,17 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h2 className={`text-3xl font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>Live Exam Monitoring</h2>
+          <h2 className={`text-3xl font-bold mb-2 text-white`}>Live Exam Monitoring</h2>
           <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Real-time average cheat score tracking</p>
         </div>
 
         {/* Filter by Exam */}
         <div className="mb-6 flex items-center gap-4">
-          <label className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Filter by Exam:</label>
+          <label className={`text-sm font-medium text-white/70`}>Filter by Exam:</label>
           <select
             value={activeExam || ''}
             onChange={(e) => setActiveExam(e.target.value || undefined)}
-            className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FD366E] focus:border-[#FD366E] backdrop-blur-sm ${isDark ? 'border-white/10 bg-white/5 text-white' : 'border-gray-300 bg-white text-gray-900'}`}
+            className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FD366E] focus:border-[#FD366E] backdrop-blur-sm border-white/10 bg-white/5 text-white`}
           >
             <option value="">All Active Exams</option>
             {exams.map((exam) => (
@@ -154,18 +154,18 @@ export default function AdminPage() {
         </div>
 
         {/* Leaderboard */}
-        <div className={`border rounded-lg shadow-lg p-6 backdrop-blur-sm ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'}`}>
+        <div className={`border rounded-lg shadow-lg p-6 backdrop-blur-sm bg-white/5 border-white/10`}>
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Active Students (Sorted by Risk)</h3>
-              <p className={`text-sm mt-1 ${isDark ? 'text-white/60' : 'text-gray-600'}`}>Updates every 3 seconds - Average cheat score</p>
+              <h3 className={`text-xl font-bold text-white`}>Active Students (Sorted by Risk)</h3>
+              <p className={`text-sm mt-1 text-white/60`}>Updates every 3 seconds - Average cheat score</p>
             </div>
             <div className="flex items-center gap-2">
               <span className="relative flex h-3 w-3">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
               </span>
-              <span className={`text-sm font-medium ${isDark ? 'text-white/70' : 'text-gray-700'}`}>Live</span>
+              <span className={`text-sm font-medium text-white/70`}>Live</span>
             </div>
           </div>
 
