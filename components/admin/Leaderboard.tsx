@@ -47,6 +47,7 @@ export default function Leaderboard({ examId, onSelectStudent, isDark = true }: 
 
   const fetchLeaderboard = async () => {
     try {
+      // First fetch exam_sessions with limited relations
       let query = supabase
         .from('exam_sessions')
         .select(`
@@ -55,15 +56,12 @@ export default function Leaderboard({ examId, onSelectStudent, isDark = true }: 
           exam_id,
           status,
           exams (
+            id,
             title
           ),
           profiles (
+            id,
             full_name
-          ),
-          cheat_scores (
-            score,
-            timestamp,
-            alerts
           )
         `)
         .eq('status', 'in_progress')
@@ -73,16 +71,45 @@ export default function Leaderboard({ examId, onSelectStudent, isDark = true }: 
         query = query.eq('exam_id', examId)
       }
 
-      const { data, error } = await query
+      const { data: sessions, error: sessionsError } = await query
 
-      if (error) throw error
+      if (sessionsError) {
+        console.error('Sessions error:', sessionsError)
+        throw sessionsError
+      }
+
+      if (!sessions || sessions.length === 0) {
+        setStudents([])
+        setLoading(false)
+        return
+      }
+
+      // Then fetch cheat_scores separately
+      const sessionIds = sessions.map(s => s.id)
+      const { data: allScores, error: scoresError } = await supabase
+        .from('cheat_scores')
+        .select('session_id, score, alerts')
+        .in('session_id', sessionIds)
+
+      if (scoresError) {
+        console.error('Scores error:', scoresError)
+        throw scoresError
+      }
+
+      // Group scores by session
+      const scoresBySession = new Map<string, any[]>()
+      allScores?.forEach((score: any) => {
+        if (!scoresBySession.has(score.session_id)) {
+          scoresBySession.set(score.session_id, [])
+        }
+        scoresBySession.get(score.session_id)!.push(score)
+      })
 
       // Process and aggregate data - calculate cheat probability
-      const leaderboardData: StudentLeaderboardItem[] = data?.map((session: any) => {
-        const scores = session.cheat_scores || []
+      const leaderboardData: StudentLeaderboardItem[] = sessions.map((session: any) => {
+        const scores = scoresBySession.get(session.id) || []
         
         // Calculate cheat probability based on average score
-        // Higher score = higher probability of cheating
         const avgScore = scores.length > 0 
           ? scores.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / scores.length 
           : 0
@@ -106,7 +133,7 @@ export default function Leaderboard({ examId, onSelectStudent, isDark = true }: 
           detected_behaviors: Array.from(allAlerts),
           last_updated: new Date().toISOString(),
         }
-      }) || []
+      })
 
       // Sort by cheat probability (highest first)
       leaderboardData.sort((a, b) => b.cheat_score - a.cheat_score)
