@@ -88,7 +88,7 @@ export default function Leaderboard({ examId, onSelectStudent, isDark = true }: 
       const sessionIds = sessions.map(s => s.id)
       const { data: allScores, error: scoresError } = await supabase
         .from('cheat_scores')
-        .select('session_id, score, alerts')
+        .select('session_id, score, detected_behavior')
         .in('session_id', sessionIds)
 
       if (scoresError) {
@@ -114,11 +114,11 @@ export default function Leaderboard({ examId, onSelectStudent, isDark = true }: 
           ? scores.reduce((sum: number, s: any) => sum + (s.score || 0), 0) / scores.length 
           : 0
         
-        // Collect all unique alerts
+        // Collect all unique alerts from detected_behavior
         const allAlerts = new Set<string>()
         scores.forEach((score: any) => {
-          if (score.alerts && Array.isArray(score.alerts)) {
-            score.alerts.forEach((alert: string) => allAlerts.add(alert))
+          if (score.detected_behavior && Array.isArray(score.detected_behavior)) {
+            score.detected_behavior.forEach((alert: string) => allAlerts.add(alert))
           }
         })
         
