@@ -578,27 +578,75 @@ export default function ExamPage() {
             style={isDesktop ? { flexBasis: `${(questionPaneWidth * 100).toFixed(2)}%`, maxWidth: `${(questionPaneWidth * 100).toFixed(2)}%` } : undefined}
           >
             <div className="bg-white rounded-lg shadow-lg p-6 flex-1">
-              <h2 className="text-xl font-semibold text-gray-800">Exam Questions</h2>
-              <p className="text-sm text-gray-500 mt-2">Review these before you begin.</p>
-              <div className="mt-4 space-y-3 text-sm text-gray-700">
-                {questions.length === 0 ? (
-                  <div className="rounded-md bg-gray-100 px-4 py-3 text-gray-500">
-                    Questions will appear here once added by your instructor.
-                  </div>
-                ) : (
-                  questions.map((question, index) => (
-                    <div
-                      key={index}
-                      className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 shadow-sm"
-                    >
-                      <span className="block text-xs font-semibold text-indigo-600 mb-2">
-                        Question {index + 1}
-                      </span>
-                      <p className="leading-relaxed">{question}</p>
+              {!isStarted ? (
+                // Show instructions before exam starts
+                <>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-4">📋 Exam Instructions</h2>
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-blue-900 mb-2">⚠️ Important Guidelines</h3>
+                      <ul className="space-y-2 text-sm text-blue-800">
+                        <li>• <strong>Camera Monitoring:</strong> Your webcam will be monitored throughout the exam</li>
+                        <li>• <strong>Face Detection:</strong> Keep your face visible and centered at all times</li>
+                        <li>• <strong>Stay Focused:</strong> Looking away repeatedly will be flagged as suspicious</li>
+                        <li>• <strong>No Tab Switching:</strong> Leaving this tab will trigger alerts</li>
+                        <li>• <strong>No Devices:</strong> Keep phones and tablets out of camera view</li>
+                      </ul>
                     </div>
-                  ))
-                )}
-              </div>
+
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-green-900 mb-2">✅ Before You Start</h3>
+                      <ul className="space-y-2 text-sm text-green-800">
+                        <li>• Ensure you are in a well-lit environment</li>
+                        <li>• Position yourself so your face is centered in the camera</li>
+                        <li>• Close all other tabs and applications</li>
+                        <li>• Make sure you have a stable internet connection</li>
+                        <li>• Read all questions carefully before answering</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <h3 className="font-semibold text-gray-900 mb-2">📝 Exam Details</h3>
+                      <div className="text-sm text-gray-700 space-y-1">
+                        <p><strong>Title:</strong> {examTitle}</p>
+                        <p><strong>Total Questions:</strong> {questions.length > 0 ? questions.length : 'Loading...'}</p>
+                        <p><strong>Session ID:</strong> {sessionId || 'Loading...'}</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-sm text-red-800 font-semibold text-center">
+                        ⚠️ Once you click Start Exam, the monitoring will begin immediately. Make sure you are ready before proceeding.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                // Show questions after exam starts
+                <>
+                  <h2 className="text-xl font-semibold text-gray-800">Exam Questions</h2>
+                  <p className="text-sm text-gray-500 mt-2">Answer all questions carefully.</p>
+                  <div className="mt-4 space-y-3 text-sm text-gray-700">
+                    {questions.length === 0 ? (
+                      <div className="rounded-md bg-gray-100 px-4 py-3 text-gray-500">
+                        Questions will appear here once added by your instructor.
+                      </div>
+                    ) : (
+                      questions.map((question, index) => (
+                        <div
+                          key={index}
+                          className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 shadow-sm"
+                        >
+                          <span className="block text-xs font-semibold text-indigo-600 mb-2">
+                            Question {index + 1}
+                          </span>
+                          <p className="leading-relaxed">{question}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              )}
             </div>
             <div
               className="hidden lg:flex absolute top-0 right-0 h-full w-2 cursor-col-resize items-center justify-center group"
@@ -665,7 +713,7 @@ export default function ExamPage() {
                   >
                     ✅ Submit Exam
                   </button>
-                  
+
                 )}
               </div>
               <div className="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3 text-sm text-gray-600">
