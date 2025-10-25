@@ -598,16 +598,38 @@ export default function ExamPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <div className="max-w-6xl mx-auto flex flex-col gap-6 h-full px-4 lg:px-0">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+    <div className="min-h-screen bg-[#19191C] py-8">
+      {/* Grid Pattern Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `
+            linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px)
+          `,
+          backgroundSize: '50px 50px'
+        }}></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#19191C]/50 to-[#19191C]"></div>
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto flex flex-col gap-6 h-full px-4 lg:px-0">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">{examTitle}</h1>
-              <p className="text-gray-600 text-sm mt-1">Session ID: {sessionId || 'Loading...'}</p>
+              <h1 className="text-3xl font-bold text-white">{examTitle}</h1>
+              <p className="text-white/60 text-sm mt-1">Session ID: {sessionId || 'Loading...'}</p>
             </div>
-            <div className="text-sm text-indigo-600 font-semibold">
-              {isStarted ? 'Monitoring in progress' : 'Waiting to start'}
+            <div className="flex items-center gap-2">
+              {isStarted ? (
+                <>
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FD366E] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#FD366E]"></span>
+                  </span>
+                  <span className="text-sm text-[#FD366E] font-semibold">Monitoring Active</span>
+                </>
+              ) : (
+                <span className="text-sm text-white/60 font-semibold">Waiting to Start</span>
+              )}
             </div>
           </div>
         </div>
@@ -617,46 +639,97 @@ export default function ExamPage() {
             className="relative flex flex-col"
             style={isDesktop ? { flexBasis: `${(questionPaneWidth * 100).toFixed(2)}%`, maxWidth: `${(questionPaneWidth * 100).toFixed(2)}%` } : undefined}
           >
-            <div className="bg-white rounded-lg shadow-lg p-6 flex-1">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6 flex-1">
               {!isStarted ? (
                 // Show instructions before exam starts
                 <>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4">📋 Exam Instructions</h2>
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] rounded-lg flex items-center justify-center">
+                      <span className="text-white text-xl">📋</span>
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">Exam Instructions</h2>
+                  </div>
                   <div className="space-y-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h3 className="font-semibold text-blue-900 mb-2">⚠️ Important Guidelines</h3>
-                      <ul className="space-y-2 text-sm text-blue-800">
-                        <li>• <strong>Camera Monitoring:</strong> Your webcam will be monitored throughout the exam</li>
-                        <li>• <strong>Face Detection:</strong> Keep your face visible and centered at all times</li>
-                        <li>• <strong>Stay Focused:</strong> Looking away repeatedly will be flagged as suspicious</li>
-                        <li>• <strong>No Tab Switching:</strong> Leaving this tab will trigger alerts</li>
-                        <li>• <strong>No Devices:</strong> Keep phones and tablets out of camera view</li>
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+                      <h3 className="font-semibold text-red-400 mb-3 flex items-center gap-2">
+                        <span>⚠️</span> Important Guidelines
+                      </h3>
+                      <ul className="space-y-2.5 text-sm text-white/80">
+                        <li className="flex items-start gap-2">
+                          <span className="text-red-400 mt-0.5">•</span>
+                          <span><strong className="text-white">Camera Monitoring:</strong> Your webcam will be monitored throughout the exam</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-red-400 mt-0.5">•</span>
+                          <span><strong className="text-white">Face Detection:</strong> Keep your face visible and centered at all times</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-red-400 mt-0.5">•</span>
+                          <span><strong className="text-white">Stay Focused:</strong> Looking away repeatedly will be flagged as suspicious</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-red-400 mt-0.5">•</span>
+                          <span><strong className="text-white">No Tab Switching:</strong> Leaving this tab will trigger alerts</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-red-400 mt-0.5">•</span>
+                          <span><strong className="text-white">No Devices:</strong> Keep phones and tablets out of camera view</span>
+                        </li>
                       </ul>
                     </div>
 
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <h3 className="font-semibold text-green-900 mb-2">✅ Before You Start</h3>
-                      <ul className="space-y-2 text-sm text-green-800">
-                        <li>• Ensure you are in a well-lit environment</li>
-                        <li>• Position yourself so your face is centered in the camera</li>
-                        <li>• Close all other tabs and applications</li>
-                        <li>• Make sure you have a stable internet connection</li>
-                        <li>• Read all questions carefully before answering</li>
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+                      <h3 className="font-semibold text-green-400 mb-3 flex items-center gap-2">
+                        <span>✅</span> Before You Start
+                      </h3>
+                      <ul className="space-y-2.5 text-sm text-white/80">
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-400 mt-0.5">•</span>
+                          <span>Ensure you are in a well-lit environment</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-400 mt-0.5">•</span>
+                          <span>Position yourself so your face is centered in the camera</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-400 mt-0.5">•</span>
+                          <span>Close all other tabs and applications</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-400 mt-0.5">•</span>
+                          <span>Make sure you have a stable internet connection</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="text-green-400 mt-0.5">•</span>
+                          <span>Read all questions carefully before answering</span>
+                        </li>
                       </ul>
                     </div>
 
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900 mb-2">📝 Exam Details</h3>
-                      <div className="text-sm text-gray-700 space-y-1">
-                        <p><strong>Title:</strong> {examTitle}</p>
-                        <p><strong>Total Questions:</strong> {questions.length > 0 ? questions.length : 'Loading...'}</p>
-                        <p><strong>Session ID:</strong> {sessionId || 'Loading...'}</p>
+                    <div className="bg-white/5 border border-white/10 rounded-lg p-4">
+                      <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                        <span>📝</span> Exam Details
+                      </h3>
+                      <div className="text-sm text-white/70 space-y-2">
+                        <p className="flex items-center gap-2">
+                          <span className="text-white/40">Title:</span>
+                          <span className="text-white font-medium">{examTitle}</span>
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-white/40">Total Questions:</span>
+                          <span className="text-white font-medium">{questions.length > 0 ? questions.length : 'Loading...'}</span>
+                        </p>
+                        <p className="flex items-center gap-2">
+                          <span className="text-white/40">Session ID:</span>
+                          <span className="text-white/60 font-mono text-xs">{sessionId || 'Loading...'}</span>
+                        </p>
                       </div>
                     </div>
 
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-sm text-red-800 font-semibold text-center">
-                        ⚠️ Once you click Start Exam, the monitoring will begin immediately. Make sure you are ready before proceeding.
+                    <div className="bg-gradient-to-r from-[#FD366E]/10 to-[#FF6B9D]/10 border border-[#FD366E]/30 rounded-lg p-4">
+                      <p className="text-sm text-white/90 font-medium text-center flex items-center justify-center gap-2">
+                        <span>⚠️</span>
+                        <span>Once you click Start Exam, monitoring begins immediately. Make sure you are ready before proceeding.</span>
                       </p>
                     </div>
                   </div>
@@ -664,23 +737,40 @@ export default function ExamPage() {
               ) : (
                 // Show questions after exam starts
                 <>
-                  <h2 className="text-xl font-semibold text-gray-800">Exam Questions</h2>
-                  <p className="text-sm text-gray-500 mt-2">Answer all questions carefully.</p>
-                  <div className="mt-4 space-y-3 text-sm text-gray-700">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] rounded-lg flex items-center justify-center">
+                      <span className="text-white text-xl">📝</span>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-white">Exam Questions</h2>
+                      <p className="text-sm text-white/60 mt-0.5">Answer all questions carefully</p>
+                    </div>
+                  </div>
+                  <div className="mt-6 space-y-4">
                     {questions.length === 0 ? (
-                      <div className="rounded-md bg-gray-100 px-4 py-3 text-gray-500">
-                        Questions will appear here once added by your instructor.
+                      <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-8 text-white/60 text-center">
+                        <p className="mb-2">📚 Sample Questions</p>
+                        <p className="text-sm">Questions will appear here once added by your instructor.</p>
                       </div>
                     ) : (
                       questions.map((question, index) => (
                         <div
                           key={index}
-                          className="rounded-lg border border-gray-100 bg-gray-50 px-4 py-3 shadow-sm"
+                          className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5 hover:border-[#FD366E]/30 transition-colors"
                         >
-                          <span className="block text-xs font-semibold text-indigo-600 mb-2">
-                            Question {index + 1}
-                          </span>
-                          <p className="leading-relaxed">{question}</p>
+                          <div className="flex items-start gap-3">
+                            <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                              {index + 1}
+                            </span>
+                            <div className="flex-1 pt-1">
+                              <p className="text-white leading-relaxed">{question}</p>
+                              <textarea
+                                className="mt-4 w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#FD366E] focus:border-[#FD366E] outline-none resize-none"
+                                rows={3}
+                                placeholder="Type your answer here..."
+                              />
+                            </div>
+                          </div>
                         </div>
                       ))
                     )}
@@ -693,7 +783,7 @@ export default function ExamPage() {
               onMouseDown={startResize}
               role="presentation"
             >
-              <span className="h-12 w-1 rounded-full bg-indigo-200 transition-colors group-hover:bg-indigo-400" />
+              <span className="h-12 w-1 rounded-full bg-[#FD366E]/30 transition-colors group-hover:bg-[#FD366E]" />
             </div>
           </div>
 
@@ -701,16 +791,26 @@ export default function ExamPage() {
             className="lg:flex-1 flex flex-col gap-4"
             style={isDesktop ? { flexBasis: `${((1 - questionPaneWidth) * 100).toFixed(2)}%` } : undefined}
           >
-            <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-800">Your Webcam</h2>
+                <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+                  <span>📹</span> Your Webcam
+                </h2>
                 {isStarted ? (
-                  <span className="text-green-500 text-sm font-semibold">Recording</span>
+                  <span className="flex items-center gap-2 px-3 py-1 bg-red-500/20 text-red-400 text-sm font-semibold rounded-full border border-red-500/30">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                    Recording
+                  </span>
                 ) : (
-                  <span className="text-yellow-500 text-sm font-semibold">Ready</span>
+                  <span className="px-3 py-1 bg-yellow-500/20 text-yellow-400 text-sm font-semibold rounded-full border border-yellow-500/30">
+                    Ready
+                  </span>
                 )}
               </div>
-              <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video">
+              <div className="relative bg-black/50 border border-white/10 rounded-lg overflow-hidden aspect-video">
                 <video
                   ref={videoRef}
                   autoPlay
@@ -719,10 +819,15 @@ export default function ExamPage() {
                   className="w-full h-full object-cover"
                 />
                 {!isStarted && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="text-center text-white text-sm space-y-2">
-                      <p>Camera will activate when you start</p>
-                      <p className="opacity-75">Ensure your face is centered and well-lit</p>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="text-center text-white space-y-3 px-6">
+                      <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <svg className="w-8 h-8 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium">Camera will activate when you start</p>
+                      <p className="text-xs text-white/60">Ensure your face is centered and well-lit</p>
                     </div>
                   </div>
                 )}
@@ -730,10 +835,10 @@ export default function ExamPage() {
               <canvas ref={canvasRef} className="hidden" />
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800">Exam Controls</h3>
-                <span className="text-sm text-gray-500">
+                <h3 className="text-lg font-semibold text-white">Exam Controls</h3>
+                <span className="text-sm text-white/60">
                   {isStarted ? 'Session active' : 'Session not started'}
                 </span>
               </div>
@@ -742,43 +847,42 @@ export default function ExamPage() {
                   <button
                     onClick={startExam}
                     disabled={!sessionId}
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="flex-1 bg-gradient-to-r from-[#FD366E] to-[#FF6B9D] hover:shadow-lg hover:shadow-pink-500/30 text-white font-semibold py-3.5 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
                   >
-                    ▶️ Start Exam
+                    <span>▶️</span> Start Exam
                   </button>
                 ) : (
                   <button
                     onClick={submitExam}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg hover:shadow-blue-500/30 text-white font-semibold py-3.5 px-6 rounded-lg transition-all flex items-center justify-center gap-2"
                   >
-                    ✅ Submit Exam
+                    <span>✅</span> Submit Exam
                   </button>
-
                 )}
               </div>
-              <div className="rounded-lg bg-gray-50 border border-gray-100 px-4 py-3 text-sm text-gray-600">
+              <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-sm text-white/70">
                 {status}
               </div>
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col gap-4">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg shadow-lg p-6 flex flex-col gap-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-800">Detection Results</h3>
+                <h3 className="text-lg font-semibold text-white">Detection Results</h3>
                 <span
                   className={`text-2xl font-bold ${
                     currentScore >= 85
-                      ? 'text-green-500'
+                      ? 'text-green-400'
                       : currentScore >= 70
-                      ? 'text-yellow-500'
+                      ? 'text-yellow-400'
                       : currentScore >= 50
-                      ? 'text-orange-500'
-                      : 'text-red-500'
+                      ? 'text-orange-400'
+                      : 'text-red-400'
                   }`}
                 >
                   {currentScore}%
                 </span>
               </div>
-              <div className="bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div className="bg-white/10 rounded-full h-3 overflow-hidden">
                 <div
                   className={`h-full transition-all ${
                     currentScore >= 85
@@ -792,26 +896,27 @@ export default function ExamPage() {
                   style={{ width: `${currentScore}%` }}
                 />
               </div>
-              <div className="text-sm text-gray-600">
-                <p className="font-semibold text-gray-700">Current state:</p>
-                <p className="mt-1">{status}</p>
+              <div className="text-sm text-white/70">
+                <p className="font-semibold text-white mb-1">Current state:</p>
+                <p>{status}</p>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-700 mb-2">
-                  Live alerts
+                <p className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                  <span>🚨</span> Live alerts
                 </p>
                 {alerts.length === 0 ? (
-                  <div className="rounded-md border border-gray-100 bg-gray-50 px-4 py-3 text-sm text-gray-500">
-                    No suspicious activity detected.
+                  <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60 text-center">
+                    No suspicious activity detected
                   </div>
                 ) : (
-                  <ul className="space-y-2 text-sm text-red-600">
+                  <ul className="space-y-2 text-sm">
                     {alerts.map((alert, index) => (
                       <li
                         key={index}
-                        className="rounded-md border border-red-100 bg-red-50 px-4 py-2"
+                        className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-red-400 flex items-center gap-2"
                       >
-                        {alert.replace(/_/g, ' ').toUpperCase()}
+                        <span>⚠️</span>
+                        <span>{alert.replace(/_/g, ' ').toUpperCase()}</span>
                       </li>
                     ))}
                   </ul>
@@ -821,14 +926,26 @@ export default function ExamPage() {
           </div>
         </div>
 
-        <div className="bg-blue-50 rounded-lg border border-blue-100 px-6 py-5 text-sm text-blue-900">
-          <h4 className="font-semibold mb-2">📋 Final Checklist</h4>
-          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-blue-900">
-            <span>• Keep looking at the screen</span>
-            <span>• Stay fully within the camera frame</span>
-            <span>• Avoid looking away or leaving the tab</span>
-            <span>• Keep phones and tablets out of view</span>
-            <span>• Admin can view you live at any time</span>
+        <div className="bg-gradient-to-r from-[#FD366E]/10 to-[#FF6B9D]/10 backdrop-blur-md border border-[#FD366E]/30 rounded-lg px-6 py-5">
+          <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
+            <span>📋</span> Final Checklist
+          </h4>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/80">
+            <span className="flex items-center gap-2">
+              <span className="text-[#FD366E]">•</span> Keep looking at the screen
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-[#FD366E]">•</span> Stay fully within the camera frame
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-[#FD366E]">•</span> Avoid looking away or leaving the tab
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-[#FD366E]">•</span> Keep phones and tablets out of view
+            </span>
+            <span className="flex items-center gap-2">
+              <span className="text-[#FD366E]">•</span> Admin can view you live at any time
+            </span>
           </div>
         </div>
       </div>
