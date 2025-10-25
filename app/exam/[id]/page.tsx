@@ -240,41 +240,11 @@ export default function ExamPage() {
       // Setup WebRTC for admin viewing
       await setupWebRTC(stream);
 
-      // Connect to ML model WebSocket
-      const ML_SERVER_URL = process.env.NEXT_PUBLIC_ML_SERVER_URL || 'ws://localhost:8000/analyze';
-      const ws = new WebSocket(ML_SERVER_URL);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        console.log('Connected to ML model');
-        setStatus('Monitoring started');
-        setIsStarted(true);
-        captureAndAnalyze();
-      };
-
-      ws.onmessage = (event) => {
-        const result: AnalysisResult = JSON.parse(event.data);
-        
-        if (result.success) {
-          setCurrentScore(Math.round(result.focus_score));
-          setStatus(result.status);
-          const remoteAlerts = result.alerts || [];
-          remoteAlertsRef.current = remoteAlerts;
-          setAlerts(Array.from(new Set([...remoteAlerts, ...manualAlertsRef.current])));
-
-          // Add to buffer
-          scoreBufferRef.current.push(result);
-
-          // Save snapshot if suspicious (focus_score < 50)
-          if (result.focus_score < 50 && canvasRef.current && videoRef.current) {
-            captureSnapshot();
-          }
-        }
-      };
-
-      ws.onerror = () => {
-        setStatus('Connection error - Make sure ML model is running');
-      };
+      // Start ML analysis (no WebSocket needed, using HTTP POST)
+      console.log('Starting ML analysis via HTTP');
+      setStatus('Monitoring started');
+      setIsStarted(true);
+      captureAndAnalyze();
 
     } catch (error) {
       console.error('Failed to start exam:', error);
@@ -282,9 +252,9 @@ export default function ExamPage() {
     }
   };
 
-  // Capture frame and send to ML model
-  const captureAndAnalyze = () => {
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+  // Capture frame and send to ML model via HTTP POST
+  const captureAndAnalyze = async () => {
+    if (!isStarted) return;
     if (!videoRef.current || !canvasRef.current) return;
 
     const canvas = canvasRef.current;
@@ -299,7 +269,37 @@ export default function ExamPage() {
     ctx.drawImage(video, 0, 0);
     const imageData = canvas.toDataURL('image/jpeg', 0.8);
 
-    wsRef.current.send(JSON.stringify({ frame: imageData }));
+    // Send frame to ML server via HTTP POST
+    try {
+      const ML_SERVER_URL = process.env.NEXT_PUBLIC_ML_SERVER_URL || '/api/ml-proxy';
+      const response = await fetch(ML_SERVER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ frame: imageData }),
+      });
+
+      if (response.ok) {
+        const result: AnalysisResult = await response.json();
+        
+        if (result.success) {
+          setCurrentScore(Math.round(result.focus_score));
+          setStatus(result.status);
+          const remoteAlerts = result.alerts || [];
+          remoteAlertsRef.current = remoteAlerts;
+          setAlerts(Array.from(new Set([...remoteAlerts, ...manualAlertsRef.current])));
+
+          // Add to buffer
+          scoreBufferRef.current.push(result);
+
+          // Save snapshot if suspicious (focus_score < 50)
+          if (result.focus_score < 50) {
+            captureSnapshot();
+          }
+        }
+      }
+    } catch (error) {
+      console.error('ML analysis error:', error);
+    }
 
     // Continue at 30 FPS
     setTimeout(captureAndAnalyze, 33);
