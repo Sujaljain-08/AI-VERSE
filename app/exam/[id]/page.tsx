@@ -71,8 +71,8 @@ export default function ExamPage() {
   // Stricter tab inactivity tracking
   const lastActivityTimeRef = useRef<number>(0);
   const tabInactiveCountRef = useRef<number>(0);
-  const TAB_INACTIVITY_THRESHOLD = 2000; // 2 seconds without activity = flag
-  const TAB_INACTIVITY_TOLERANCE = 5000; // 5 seconds total before penalty
+  const TAB_INACTIVITY_THRESHOLD = 500; // 0.5 seconds without activity = flag (STRICTER)
+  const TAB_INACTIVITY_TOLERANCE = 1500; // 1.5 seconds total before penalty (STRICTER)
   
   // Snapshot tracking - more rigorous criteria
   const lastSnapshotTimeRef = useRef<number>(0);
@@ -436,11 +436,11 @@ export default function ExamPage() {
     // Track user activity (keyboard, mouse, focus)
     const updateActivity = () => {
       lastActivityTimeRef.current = Date.now();
-      if (tabInactiveRef.current && tabInactiveCountRef.current < 2) {
-        // Allow recovery if back within tolerance
+      if (tabInactiveRef.current && tabInactiveCountRef.current < 1) {
+        // Only allow one recovery - stricter enforcement
         tabInactiveRef.current = false;
         setManualAlerts((prev) => prev.filter((alert) => alert !== TAB_INACTIVE_ALERT));
-        console.log('[Activity] Recovered from inactivity');
+        console.log('[Activity] Recovered from inactivity (final warning)');
       }
     };
 
@@ -504,7 +504,7 @@ export default function ExamPage() {
       updateActivity();
     };
 
-    // Inactivity monitoring - check if user hasn't interacted in 2 seconds
+    // Inactivity monitoring - check if user hasn't interacted in threshold
     const inactivityInterval = setInterval(() => {
       if (!isStartedRef.current) return;
       const timeSinceActivity = Date.now() - lastActivityTimeRef.current;
@@ -513,11 +513,11 @@ export default function ExamPage() {
         if (!tabInactiveRef.current) {
           flagTabInactive('no_interaction');
         }
-      } else if (timeSinceActivity < 1000 && tabInactiveRef.current && tabInactiveCountRef.current < 2) {
-        // Grace period for recovery
+      } else if (timeSinceActivity < 300 && tabInactiveRef.current && tabInactiveCountRef.current < 1) {
+        // Very tight grace period for recovery (only one chance)
         clearTabInactiveFlag();
       }
-    }, 1000);
+    }, 200); // Check more frequently for stricter enforcement
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleWindowBlur);
