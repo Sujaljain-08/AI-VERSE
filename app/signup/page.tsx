@@ -65,72 +65,68 @@ export default function SignupPage() {
   // If verification message should be shown, display it
   if (showVerificationMessage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-        <div className="max-w-2xl w-full space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
+      <div className="min-h-screen flex items-center justify-center bg-[#19191C] p-4">
+        <div className="max-w-xl w-full space-y-5 bg-white/5 border border-white/10 p-8 rounded-2xl backdrop-blur-sm">
           <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4">
-              <svg className="h-10 w-10 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="mx-auto flex items-center justify-center h-14 w-14 rounded-xl bg-gradient-to-br from-[#FD366E]/20 to-[#FF6B9D]/20 mb-4">
+              <svg className="h-8 w-8 text-[#FD366E]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
               </svg>
             </div>
-            <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-4">
-              Check Your Email! 📧
+            <h2 className="text-2xl font-bold text-white mb-3">
+              Check Your Email
             </h2>
-            <p className="text-lg text-gray-700 dark:text-gray-300 mb-6">
+            <p className="text-sm text-white/70 mb-4">
               We&apos;ve sent a verification email to:
             </p>
-            <p className="text-xl font-semibold text-indigo-600 dark:text-indigo-400 mb-8">
+            <p className="text-base font-semibold text-transparent bg-clip-text bg-gradient-to-r from-[#FD366E] to-[#FF6B9D] mb-6">
               {userEmail}
             </p>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-6 space-y-4">
-            <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
-              <span className="text-2xl">👉</span> Next Steps:
+          <div className="bg-white/5 border border-white/10 rounded-xl p-5 space-y-3">
+            <h3 className="font-semibold text-base text-white flex items-center gap-2">
+              <span className="text-lg">�</span> Next Steps
             </h3>
-            <ol className="space-y-3 text-gray-700 dark:text-gray-300">
-              <li className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
-                <span><strong>Open your email inbox</strong> and look for an email from Supabase (check spam/junk folder if you don&apos;t see it)</span>
+            <ol className="space-y-2.5 text-sm text-white/70">
+              <li className="flex items-start gap-2.5">
+                <span className="flex-shrink-0 w-5 h-5 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                <span>Open your email inbox (check spam/junk folder if needed)</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
-                <span><strong>Click the verification link</strong> in the email to confirm your account</span>
+              <li className="flex items-start gap-2.5">
+                <span className="flex-shrink-0 w-5 h-5 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                <span>Click the verification link to confirm your account</span>
               </li>
-              <li className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
-                <span><strong>Come back and sign in</strong> to access your dashboard</span>
+              <li className="flex items-start gap-2.5">
+                <span className="flex-shrink-0 w-5 h-5 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                <span>Come back and sign in to access your dashboard</span>
               </li>
             </ol>
           </div>
 
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <span className="text-2xl">⚠️</span>
-              <div className="text-sm text-gray-700 dark:text-gray-300">
+          <div className="bg-[#FD366E]/10 border border-[#FD366E]/30 rounded-xl p-4">
+            <div className="flex items-start gap-2.5">
+              <span className="text-lg">⚠️</span>
+              <div className="text-xs text-white/80">
                 <p className="font-semibold mb-1">Important:</p>
-                <p>You must verify your email before you can sign in. The verification link will expire in 24 hours.</p>
+                <p>You must verify your email before signing in. The link expires in 24 hours.</p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 pt-4">
+          <div className="flex flex-col gap-3 pt-2">
             <Link
               href="/login"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all"
+              className="w-full flex justify-center py-2.5 px-4 rounded-lg bg-gradient-to-r from-[#FD366E] to-[#FF6B9D] text-white hover:shadow-lg hover:shadow-pink-500/30 transition-all font-semibold text-sm"
             >
-              Go to Sign In Page
+              Go to Sign In
             </Link>
             <button
               onClick={() => setShowVerificationMessage(false)}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 underline"
+              className="text-xs text-white/60 hover:text-white/90 underline"
             >
-              Didn&apos;t receive the email? Try signing up again
+              Didn&apos;t receive the email? Try again
             </button>
-          </div>
-
-          <div className="text-center text-xs text-gray-500 dark:text-gray-400 pt-4">
-            <p>💡 Tip: Add noreply@supabase.io to your contacts to ensure you receive our emails</p>
           </div>
         </div>
       </div>
