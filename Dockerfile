@@ -18,7 +18,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install runtime dependencies including openssl for SSL
+# Install runtime dependencies including OpenGL for OpenCV
 RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     openssl \
     bash \
+    libglib2.0-0 \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Generate self-signed certificate
