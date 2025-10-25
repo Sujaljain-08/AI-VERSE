@@ -756,16 +756,16 @@ export default function ExamPage() {
                       questions.map((question, index) => (
                         <div
                           key={index}
-                          className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5 hover:border-[#FD366E]/30 transition-colors"
+                          className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm p-5 hover:border-[#FD366E]/50 hover:bg-white/[0.07] transition-all duration-200"
                         >
                           <div className="flex items-start gap-3">
-                            <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] rounded-lg flex items-center justify-center text-white text-sm font-bold">
+                            <span className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-[#FD366E] to-[#FF6B9D] rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-pink-500/20">
                               {index + 1}
                             </span>
                             <div className="flex-1 pt-1">
                               <p className="text-white leading-relaxed">{question}</p>
                               <textarea
-                                className="mt-4 w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#FD366E] focus:border-[#FD366E] outline-none resize-none"
+                                className="mt-4 w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-[#FD366E] focus:border-[#FD366E] outline-none resize-none transition-all"
                                 rows={3}
                                 placeholder="Type your answer here..."
                               />
