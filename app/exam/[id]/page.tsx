@@ -157,7 +157,8 @@ export default function ExamPage() {
       await setupWebRTC(stream);
 
       // Connect to ML model WebSocket
-      const ws = new WebSocket('ws://localhost:8000/analyze');
+      const ML_SERVER_URL = process.env.NEXT_PUBLIC_ML_SERVER_URL || 'ws://localhost:8000/analyze';
+      const ws = new WebSocket(ML_SERVER_URL);
       wsRef.current = ws;
 
       ws.onopen = () => {
