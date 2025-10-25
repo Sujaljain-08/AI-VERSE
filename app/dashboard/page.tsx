@@ -87,33 +87,33 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#19191C]">
+        <div className="text-white/60">Loading...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-[#19191C]">
       {/* Navigation */}
-      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <nav className="bg-white/5 backdrop-blur-md shadow-sm border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-xl font-bold text-white">
                 Student Dashboard
               </h1>
-              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-semibold rounded-full">
+              <span className="px-3 py-1 bg-gradient-to-r from-[#FD366E]/20 to-[#FF6B9D]/20 text-[#FD366E] text-xs font-semibold rounded-full border border-[#FD366E]/30">
                 STUDENT
               </span>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="text-sm text-white/70">
                 {user?.user_metadata?.full_name || user?.email}
               </span>
               <button
                 onClick={handleSignOut}
-                className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 font-medium"
+                className="text-sm text-red-400 hover:text-red-300 font-medium"
               >
                 Sign out
               </button>
@@ -125,23 +125,23 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-3xl font-bold text-white mb-2">
             Welcome, {user?.user_metadata?.full_name || 'Student'}!
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-white/60">
             View and take your scheduled exams
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="mb-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="mb-6 border-b border-white/10">
           <nav className="flex gap-8">
             <button
               onClick={() => setActiveTab('available')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'available'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  ? 'border-[#FD366E] text-[#FD366E]'
+                  : 'border-transparent text-white/60 hover:text-white/80'
               }`}
             >
               Available Exams
@@ -150,8 +150,8 @@ export default function DashboardPage() {
               onClick={() => setActiveTab('completed')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'completed'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                  ? 'border-[#FD366E] text-[#FD366E]'
+                  : 'border-transparent text-white/60 hover:text-white/80'
               }`}
             >
               Completed Exams
@@ -163,14 +163,14 @@ export default function DashboardPage() {
         {activeTab === 'available' && (
           <div className="space-y-4">
             {exams.length === 0 ? (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
-                <svg className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white/5 border border-white/10 rounded-lg shadow p-12 text-center backdrop-blur-sm">
+                <svg className="w-16 h-16 mx-auto text-white/40 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                <h3 className="text-lg font-medium text-white mb-2">
                   No Available Exams
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-white/60">
                   Check back later for scheduled exams
                 </p>
               </div>
@@ -178,16 +178,16 @@ export default function DashboardPage() {
               exams.map((exam) => (
                 <div
                   key={exam.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow p-6"
+                  className="bg-white/5 border border-white/10 rounded-lg shadow hover:shadow-lg hover:border-[#FD366E]/30 transition-all p-6 backdrop-blur-sm"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                        <h3 className="text-xl font-bold text-white">
                           {exam.title}
                         </h3>
                         {isExamActive(exam) && (
-                          <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-semibold rounded-full flex items-center gap-1">
+                          <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs font-semibold rounded-full flex items-center gap-1 border border-green-500/30">
                             <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
@@ -196,28 +196,28 @@ export default function DashboardPage() {
                           </span>
                         )}
                         {isExamUpcoming(exam) && (
-                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-xs font-semibold rounded-full">
+                          <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs font-semibold rounded-full border border-blue-500/30">
                             UPCOMING
                           </span>
                         )}
                       </div>
                       
                       {exam.description && (
-                        <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        <p className="text-white/60 mb-4">
                           {exam.description}
                         </p>
                       )}
                       
                       <div className="grid grid-cols-2 gap-4 mt-4">
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Start Time</p>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          <p className="text-sm text-white/60">Start Time</p>
+                          <p className="text-sm font-medium text-white">
                             {formatDate(exam.start_time)}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">Duration</p>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          <p className="text-sm text-white/60">Duration</p>
+                          <p className="text-sm font-medium text-white">
                             {exam.duration_minutes} minutes
                           </p>
                         </div>
@@ -228,21 +228,21 @@ export default function DashboardPage() {
                       {isExamActive(exam) ? (
                         <button 
                           onClick={() => router.push(`/exam/${exam.id}`)}
-                          className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                          className="px-6 py-3 bg-gradient-to-r from-[#FD366E] to-[#FF6B9D] text-white rounded-lg hover:shadow-lg hover:shadow-pink-500/30 transition-all font-medium"
                         >
                           Start Exam
                         </button>
                       ) : isExamUpcoming(exam) ? (
                         <button
                           disabled
-                          className="px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg cursor-not-allowed font-medium"
+                          className="px-6 py-3 bg-white/5 text-white/40 rounded-lg cursor-not-allowed font-medium border border-white/10"
                         >
                           Not Started
                         </button>
                       ) : (
                         <button
                           disabled
-                          className="px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg cursor-not-allowed font-medium"
+                          className="px-6 py-3 bg-white/5 text-white/40 rounded-lg cursor-not-allowed font-medium border border-white/10"
                         >
                           Ended
                         </button>
@@ -256,14 +256,14 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'completed' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
-            <svg className="w-16 h-16 mx-auto text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white/5 border border-white/10 rounded-lg shadow p-12 text-center backdrop-blur-sm">
+            <svg className="w-16 h-16 mx-auto text-white/40 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-medium text-white mb-2">
               No Completed Exams
             </h3>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-white/60">
               Your completed exams will appear here
             </p>
           </div>
