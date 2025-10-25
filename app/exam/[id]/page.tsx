@@ -68,6 +68,12 @@ export default function ExamPage() {
   const layoutRef = useRef<HTMLDivElement | null>(null);
   const isResizingRef = useRef(false);
   
+  // Stricter tab inactivity tracking
+  const lastActivityTimeRef = useRef<number>(0);
+  const tabInactiveCountRef = useRef<number>(0);
+  const TAB_INACTIVITY_THRESHOLD = 2000; // 2 seconds without activity = flag
+  const TAB_INACTIVITY_TOLERANCE = 5000; // 5 seconds total before penalty
+  
   // Snapshot tracking - more rigorous criteria
   const lastSnapshotTimeRef = useRef<number>(0);
   const lowScoreCountRef = useRef<number>(0);
@@ -427,18 +433,31 @@ export default function ExamPage() {
       return;
     }
 
-    const flagTabInactive = () => {
+    // Track user activity (keyboard, mouse, focus)
+    const updateActivity = () => {
+      lastActivityTimeRef.current = Date.now();
+      if (tabInactiveRef.current && tabInactiveCountRef.current < 2) {
+        // Allow recovery if back within tolerance
+        tabInactiveRef.current = false;
+        setManualAlerts((prev) => prev.filter((alert) => alert !== TAB_INACTIVE_ALERT));
+        console.log('[Activity] Recovered from inactivity');
+      }
+    };
+
+    const flagTabInactive = (reason: string) => {
       if (!isStarted || tabInactiveRef.current) {
         return;
       }
       tabInactiveRef.current = true;
-      setStatus('Exam tab inactive');
+      tabInactiveCountRef.current++;
+      setStatus(`Exam tab inactive (${reason})`);
       setManualAlerts((prev) => (prev.includes(TAB_INACTIVE_ALERT) ? prev : [...prev, TAB_INACTIVE_ALERT]));
+      console.log(`[Tab Inactive] Flagged: ${reason} (Count: ${tabInactiveCountRef.current})`);
       scoreBufferRef.current.push({
         success: true,
         focus_score: 0,
         raw_frame_score: 0,
-        status: 'Exam tab inactive',
+        status: `Exam tab inactive - ${reason}`,
         state: 'tab_inactive',
         away_timer: 0,
         alerts: [TAB_INACTIVE_ALERT],
@@ -452,32 +471,69 @@ export default function ExamPage() {
       }
       tabInactiveRef.current = false;
       setManualAlerts((prev) => prev.filter((alert) => alert !== TAB_INACTIVE_ALERT));
+      console.log('[Tab Inactive] Cleared');
     };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
-        flagTabInactive();
+        flagTabInactive('visibility_hidden');
       } else {
+        updateActivity();
         clearTabInactiveFlag();
       }
     };
 
     const handleWindowBlur = () => {
-      flagTabInactive();
+      flagTabInactive('window_blur');
     };
 
     const handleWindowFocus = () => {
+      updateActivity();
       clearTabInactiveFlag();
     };
+
+    const handleKeyDown = () => {
+      updateActivity();
+    };
+
+    const handleMouseMove = () => {
+      updateActivity();
+    };
+
+    const handleMouseDown = () => {
+      updateActivity();
+    };
+
+    // Inactivity monitoring - check if user hasn't interacted in 2 seconds
+    const inactivityInterval = setInterval(() => {
+      if (!isStartedRef.current) return;
+      const timeSinceActivity = Date.now() - lastActivityTimeRef.current;
+      
+      if (timeSinceActivity > TAB_INACTIVITY_THRESHOLD) {
+        if (!tabInactiveRef.current) {
+          flagTabInactive('no_interaction');
+        }
+      } else if (timeSinceActivity < 1000 && tabInactiveRef.current && tabInactiveCountRef.current < 2) {
+        // Grace period for recovery
+        clearTabInactiveFlag();
+      }
+    }, 1000);
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleWindowBlur);
     window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('keydown', handleKeyDown, true); // Capture phase for better detection
+    document.addEventListener('mousemove', handleMouseMove, true);
+    document.addEventListener('mousedown', handleMouseDown, true);
 
     return () => {
+      clearInterval(inactivityInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleWindowBlur);
       window.removeEventListener('focus', handleWindowFocus);
+      document.removeEventListener('keydown', handleKeyDown, true);
+      document.removeEventListener('mousemove', handleMouseMove, true);
+      document.removeEventListener('mousedown', handleMouseDown, true);
     };
   }, [isStarted]);
 
