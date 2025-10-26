@@ -1,70 +1,130 @@
-# Exam Face Detection
+# AI-VERSE
 
-A Next.js 14+ application built with TypeScript, Tailwind CSS, and the App Router.
+An AI-powered examination proctoring system that provides real-time monitoring and suspicious activity detection.
+
+## Features
+
+- 🔐 **Secure Authentication**
+  - User registration and login
+  - Role-based access control (Admin/Student)
+  - Supabase authentication integration
+
+- 📹 **Real-time Proctoring**
+  - Live video monitoring
+  - Automated suspicious activity detection
+  - Face detection and tracking
+  - Multiple face detection alerts
+  - Real-time snapshot capture
+
+- 🎯 **Admin Dashboard**
+![Admin Dashboard](admin-dashboard.png)
+  - Live student monitoring
+  - Real-time video feeds
+  - Suspicious activity notifications
+  - Session management
+  - Performance analytics
+
+- 📊 **Snapshot Analysis**
+![Snapshots](snapshots.png)
+  - AI-powered behavior analysis
+  - Suspicious activity timeline
+  - Video recording review
+  - Detailed incident reports
+  - Snapshot history
+
+## Tech Stack
+
+- **Frontend**
+  - Next.js 13+ with App Router
+  - TypeScript
+  - Tailwind CSS
+  - Real-time WebSocket connections
+
+- **Backend**
+  - Supabase (PostgreSQL)
+  - Python ML Services
+  - Real-time Database
+  - Secure File Storage
+
+- **AI/ML**
+  - Computer Vision for face detection
+  - Behavior analysis algorithms
+  - Real-time ML inference
+
+## API Endpoints
+
+- `/api/exam/start` - Initialize exam session
+- `/api/exam/submit` - Submit exam responses
+- `/api/exam/analyze` - Process exam session
+- `/api/exam/upload-video` - Handle video uploads
+- `/api/admin/snapshots` - Manage suspicious snapshots
+
+## Project Structure
+
+```
+AI-VERSE/
+├── app/                    # Next.js 13 app directory
+│   ├── admin/             # Admin dashboard
+│   ├── exam/              # Exam interface
+│   ├── auth/              # Authentication
+│   └── api/               # API routes
+├── components/            # React components
+├── lib/                   # Utilities and types
+└── model_prediction/      # Python ML services
+```
 
 ## Getting Started
 
-### Prerequisites
-
-- Node.js 18.17 or later
-- npm, yarn, pnpm, or bun
-
-### Installation
-
-Install the dependencies:
-
-```powershell
-npm install
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/ai-verse.git
 ```
 
-### Development Server
+2. Install dependencies
+```bash
+npm install
+cd model_prediction && pip install -r requirements.txt
+```
 
-Run the development server:
+3. Set up environment variables
+```bash
+cp .env.example .env.local
+```
 
-```powershell
+4. Run the development server
+```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-### Project Structure
-
-```
-exam-face-detection/
-├── app/                  # App Router directory
-│   ├── api/             # API routes
-│   │   └── hello/       # Example API endpoint
-│   ├── globals.css      # Global styles
-│   ├── layout.tsx       # Root layout component
-│   └── page.tsx         # Home page
-├── public/              # Static assets
-├── .github/             # GitHub configuration
-├── .eslintrc.json       # ESLint configuration
-├── .gitignore           # Git ignore rules
-├── next.config.mjs      # Next.js configuration
-├── package.json         # Dependencies and scripts
-├── postcss.config.js    # PostCSS configuration
-├── tailwind.config.js   # Tailwind CSS configuration
-└── tsconfig.json        # TypeScript configuration
+5. Start the ML service
+```bash
+cd model_prediction && python api.py
 ```
 
-## Available Scripts
+## Screenshots
 
-- `npm run dev` - Start development server on port 3000
-- `npm run build` - Build the application for production
-- `npm start` - Start the production server
-- `npm run lint` - Run ESLint to check for code issues
+### Admin Dashboard - Live Monitoring
+![Admin Dashboard](admin-dashboard.png)
+- Real-time student video feeds
+- Suspicious activity alerts
+- Session controls
+- Performance metrics
 
-## Learn More
+### Suspicious Activity Detection
+![Snapshots](snapshots.png)
+- AI-powered snapshot analysis
+- Timeline view of incidents
+- Detailed behavior reports
+- Quick action tools
 
-- [Next.js Documentation](https://nextjs.org/docs) - Learn about Next.js features and API
-- [Learn Next.js](https://nextjs.org/learn) - Interactive Next.js tutorial
-- [Tailwind CSS](https://tailwindcss.com/docs) - Utility-first CSS framework
+## License
 
-## Deploy
+MIT License - See LICENSE file for details
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new).
+## Contributing
 
-Check out the [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a Pull Request
