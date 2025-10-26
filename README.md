@@ -116,31 +116,3 @@ npm run dev
 ```bash
 cd model_prediction && python api.py
 ```
-
-## Screenshots
-
-### Admin Dashboard - Live Monitoring
-![Admin Dashboard](admin-dashboard.png)
-- Real-time student video feeds
-- Suspicious activity alerts
-- Session controls
-- Performance metrics
-
-### Suspicious Activity Detection
-![Snapshots](snapshots.png)
-- AI-powered snapshot analysis
-- Timeline view of incidents
-- Detailed behavior reports
-- Quick action tools
-
-## License
-
-MIT License - See LICENSE file for details
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
