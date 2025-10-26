@@ -1,4 +1,4 @@
-# AI-VERSE
+# ExamProctor
 
 An AI-powered examination proctoring system that provides real-time monitoring and suspicious activity detection.
 
