@@ -2,6 +2,22 @@
 
 An AI-powered examination proctoring system that provides real-time monitoring and suspicious activity detection.
 
+## System Flow
+![System Flow](system-flow.jpg)
+
+The system follows a comprehensive flow:
+1. Users sign in through Supabase authentication
+2. Dashboard loads active exams for users
+3. Browser streams frames to AI endpoint for analysis
+4. Server calculates final cheat score
+5. Students can view their results
+6. Admin portal provides live oversight
+7. Security measures include:
+   - OpenCV + heuristic models for detection
+   - Front-end security safeguards
+   - Tab inactivity monitoring
+   - Full-screen enforcement
+
 ## Features
 
 - 🔐 **Secure Authentication**
