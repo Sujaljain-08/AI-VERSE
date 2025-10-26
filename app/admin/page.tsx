@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Leaderboard from '@/components/admin/Leaderboard'
 import LiveVideoViewer from '@/components/admin/LiveVideoViewer'
+import SnapshotViewer from '@/components/admin/SnapshotViewer'
 
 export default function AdminPage() {
   const [isDark, setIsDark] = useState(true)
@@ -27,6 +28,7 @@ export default function AdminPage() {
   } | null>(null)
   const [activeExam, setActiveExam] = useState<string | undefined>()
   const [exams, setExams] = useState<any[]>([])
+  const [activeTab, setActiveTab] = useState<'live' | 'snapshots'>('live')
   
   const router = useRouter()
   const supabase = createClient()
@@ -134,43 +136,81 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h2 className={`text-3xl font-bold mb-2 text-white`}>Live Exam Monitoring</h2>
-          <p className={isDark ? 'text-white/60' : 'text-gray-600'}>Real-time average cheat score tracking</p>
+          <h2 className={`text-3xl font-bold mb-2 text-white`}>
+            {activeTab === 'live' ? 'Live Exam Monitoring' : 'Student Snapshots Archive'}
+          </h2>
+          <p className={isDark ? 'text-white/60' : 'text-gray-600'}>
+            {activeTab === 'live' 
+              ? 'Real-time average cheat score tracking'
+              : 'Review and download captured suspicious activity snapshots'
+            }
+          </p>
         </div>
 
-        {/* Filter by Exam */}
-        <div className="mb-6 flex items-center gap-4">
-          <label className={`text-sm font-medium text-white/70`}>Filter by Exam:</label>
-          <select
-            value={activeExam || ''}
-            onChange={(e) => setActiveExam(e.target.value || undefined)}
-            className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FD366E] focus:border-[#FD366E] backdrop-blur-sm border-white/10 bg-white/5 text-white`}
+        {/* Tabs */}
+        <div className="mb-6 flex gap-4 border-b border-white/10">
+          <button
+            onClick={() => setActiveTab('live')}
+            className={`px-4 py-2 font-medium transition-all ${
+              activeTab === 'live'
+                ? 'text-[#FD366E] border-b-2 border-[#FD366E]'
+                : 'text-white/50 hover:text-white/70'
+            }`}
           >
-            <option value="">All Active Exams</option>
-            {exams.map((exam) => (
-              <option key={exam.id} value={exam.id}>{exam.title}</option>
-            ))}
-          </select>
+            Live Monitoring
+          </button>
+          <button
+            onClick={() => setActiveTab('snapshots')}
+            className={`px-4 py-2 font-medium transition-all ${
+              activeTab === 'snapshots'
+                ? 'text-[#FD366E] border-b-2 border-[#FD366E]'
+                : 'text-white/50 hover:text-white/70'
+            }`}
+          >
+            Snapshots Archive
+          </button>
         </div>
 
-        {/* Leaderboard */}
-        <div className={`border rounded-lg shadow-lg p-6 backdrop-blur-sm bg-white/5 border-white/10`}>
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className={`text-xl font-bold text-white`}>Active Students (Sorted by Risk)</h3>
-              <p className={`text-sm mt-1 text-white/60`}>Updates every 3 seconds - Average cheat score</p>
+        {/* Tab Content */}
+        {activeTab === 'live' ? (
+          <>
+            {/* Filter by Exam */}
+            <div className="mb-6 flex items-center gap-4">
+              <label className={`text-sm font-medium text-white/70`}>Filter by Exam:</label>
+              <select
+                value={activeExam || ''}
+                onChange={(e) => setActiveExam(e.target.value || undefined)}
+                className={`px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#FD366E] focus:border-[#FD366E] backdrop-blur-sm border-white/10 bg-white/5 text-white [&>option]:bg-gray-800 [&>option]:text-white`}
+              >
+                <option value="">All Active Exams</option>
+                {exams.map((exam) => (
+                  <option key={exam.id} value={exam.id}>{exam.title}</option>
+                ))}
+              </select>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-              </span>
-              <span className={`text-sm font-medium text-white/70`}>Live</span>
-            </div>
-          </div>
 
-          <Leaderboard examId={activeExam} onSelectStudent={handleSelectStudent} isDark={isDark} />
-        </div>
+            {/* Leaderboard */}
+            <div className={`border rounded-lg shadow-lg p-6 backdrop-blur-sm bg-white/5 border-white/10`}>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className={`text-xl font-bold text-white`}>Active Students (Sorted by Risk)</h3>
+                  <p className={`text-sm mt-1 text-white/60`}>Updates every 3 seconds - Average cheat score</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                  <span className={`text-sm font-medium text-white/70`}>Live</span>
+                </div>
+              </div>
+
+              <Leaderboard examId={activeExam} onSelectStudent={handleSelectStudent} isDark={isDark} />
+            </div>
+          </>
+        ) : (
+          <SnapshotViewer isDark={isDark} />
+        )}
       </main>
 
       {/* Live Video Viewer Modal */}

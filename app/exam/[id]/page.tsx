@@ -472,12 +472,12 @@ export default function ExamPage() {
     }
 
     if (data) {
-      console.log('Snapshot uploaded successfully, saving to DB:', data.path)
+      console.log('Snapshot uploaded successfully, path:', data.path)
       
-      // Save metadata to database
+      // Save metadata to database - use the exact path returned
       const { error: dbError } = await supabase.from('suspicious_snapshots').insert({
         session_id: sessionId,
-        storage_path: data.path,
+        storage_path: data.path, // This should be the full path like "userId/sessionId/timestamp.jpg"
         captured_at: new Date().toISOString(),
       });
 

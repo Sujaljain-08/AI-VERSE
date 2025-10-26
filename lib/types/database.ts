@@ -63,3 +63,12 @@ export interface StudentLeaderboardItem {
   detected_behaviors: string[]
   last_updated: string
 }
+
+export interface SuspiciousSnapshot {
+  id: string
+  session_id: string
+  storage_path: string
+  captured_at: string
+  created_at: string
+  session?: ExamSession
+}
