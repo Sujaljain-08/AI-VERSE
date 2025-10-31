@@ -1,10 +1,6 @@
 # ExamProctor
 
 An AI-powered examination proctoring system that provides real-time monitoring and suspicious activity detection.
-
-## 🚀 Live Demo
-**[View Live Application](https://ai-verse-flame.vercel.app)**
-
 ---
 
 ## System Flow
